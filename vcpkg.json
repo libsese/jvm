@@ -4,6 +4,7 @@
       "name": "sese",
       "version>=": "2.1.2",
       "default-features": false
-    }
+    },
+    "gtest"
   ]
 }
