@@ -114,6 +114,26 @@ namespace jvm {
             module_ = 0x8000,
         };
 
+        static bool isPublic(int32_t flags);
+
+        static bool isPrivate(int32_t flags);
+
+        static bool isProtected(int32_t flags);
+
+        static bool isStatic(int32_t flags);
+
+        static bool isFinal(int32_t flags);
+
+        static bool isVoilatie(int32_t flags);
+
+        static bool isTransient(int32_t flags);
+
+        static bool isSynthetic(int32_t flags);
+
+        static bool isEnum(int32_t flags);
+
+        static bool isModule(int32_t flags);
+
         struct AttributeInfo {
             uint16_t name_index{};
             uint32_t length{};
@@ -140,6 +160,14 @@ namespace jvm {
 
         void parse();
 
+        [[nodiscard]] std::string getThisName() const;
+
+        [[nodiscard]] std::string getSuperName() const;
+
+        void printFields() const;
+
+        void printMethods() const;
+
     private:
         void parseMagicNumber();
 
@@ -160,7 +188,7 @@ namespace jvm {
         uint32_t magic{};
         uint16_t minor{}, major{};
         uint16_t constant_pool_count{};
-        std::vector<std::unique_ptr<ConstantInfo>> constant_infos;
+        std::vector<std::unique_ptr<ConstantInfo> > constant_infos;
         uint16_t access_flags{};
         uint16_t this_class{};
         uint16_t super_class{};

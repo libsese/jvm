@@ -11,6 +11,8 @@ add_library(jvm)
 target_sources(jvm PRIVATE
         src/jvm/Class.h
         src/jvm/Class.cc
+        src/jvm/Class_Conv.cc
+        src/jvm/Class_Parse.cc
 )
 find_package(Sese CONFIG REQUIRED)
 target_link_libraries(jvm PUBLIC Sese::Core)
