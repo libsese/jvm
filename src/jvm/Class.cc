@@ -34,7 +34,7 @@ void jvm::Class::parseVersion() {
     ASSERT_READ(minor)
     minor = FromBigEndian16(minor);
     SESE_DEBUG("minor version %d", minor);
-    ASSERT_READ(minor)
+    ASSERT_READ(major)
     major = FromBigEndian16(major);
     SESE_DEBUG("major version %d", major);
 }
@@ -47,38 +47,143 @@ void jvm::Class::parseConstantPool() {
     for (int i = 1; i < constant_pool_count; i++) {
         int8_t tag;
         ASSERT_READ(tag)
-        SESE_DEBUG("tag %d", tag);
         if (tag == utf8_info) {
             int16_t length;
             char bytes[UINT16_MAX]{};
             ASSERT_READ(length)
             length = FromBigEndian16(length);
-            SESE_DEBUG("length %d", length);
             if (length != file->read(bytes, length)) {
                 throw sese::Exception("failed to parse bytes");
             }
-            SESE_DEBUG("bytes %s", bytes);
+            auto item = std::make_unique<ConstantInfo_Utf8>();
+            item->tag = tag;
+            item->bytes = std::string(bytes, length);
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == integer_info) {
+            int32_t bytes;
+            ASSERT_READ(bytes)
+            bytes = FromBigEndian32(bytes);
+            auto item = std::make_unique<ConstantInfo_Integer>();
+            item->bytes = bytes;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == float_info) {
+            float_t bytes;
+            ASSERT_READ(bytes)
+            // bytes = FromBigEndian32(bytes);
+            auto item = std::make_unique<ConstantInfo_Float>();
+            item->bytes = bytes;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == long_info) {
+            int64_t bytes;
+            ASSERT_READ(bytes)
+            bytes = FromBigEndian32(bytes);
+            auto item = std::make_unique<ConstantInfo_Long>();
+            item->bytes = bytes;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == double_info) {
+            double bytes;
+            ASSERT_READ(bytes)
+            // bytes = FromBigEndian32(bytes);
+            auto item = std::make_unique<ConstantInfo_Double>();
+            item->bytes = bytes;
+            constant_infos.emplace_back(std::move(item));
         } else if (tag == class_info) {
             int16_t index;
             ASSERT_READ(index)
             index = FromBigEndian16(index);
-            SESE_DEBUG("index %d", index);
+            auto item = std::make_unique<ConstantInfo_Class>();
+            item->index = index;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == string_info) {
+            int16_t index;
+            ASSERT_READ(index)
+            index = FromBigEndian16(index);
+            auto item = std::make_unique<ConstantInfo_String>();
+            item->index = index;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == field_ref_info) {
+            int16_t index1, index2;
+            ASSERT_READ(index1)
+            index1 = FromBigEndian16(index1);
+            ASSERT_READ(index2)
+            index2 = FromBigEndian16(index2);
+            auto item = std::make_unique<ConstantInfo_FieldRef>();
+            item->class_info_index = index1;
+            item->name_and_type_index = index2;
+            constant_infos.emplace_back(std::move(item));
         } else if (tag == method_ref_info) {
-            int16_t index;
-            ASSERT_READ(index)
-            index = FromBigEndian16(index);
-            SESE_DEBUG("index %d", index);
-            ASSERT_READ(index)
-            index = FromBigEndian16(index);
-            SESE_DEBUG("index %d", index);
+            int16_t index1, index2;
+            ASSERT_READ(index1)
+            index1 = FromBigEndian16(index1);
+            ASSERT_READ(index2)
+            index2 = FromBigEndian16(index2);
+            auto item = std::make_unique<ConstantInfo_MethodRef>();
+            item->class_info_index = index1;
+            item->name_and_type_index = index2;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == interface_method_ref_info) {
+            int16_t index1, index2;
+            ASSERT_READ(index1)
+            index1 = FromBigEndian16(index1);
+            ASSERT_READ(index2)
+            index2 = FromBigEndian16(index2);
+            auto item = std::make_unique<ConstantInfo_InterfaceMethodRef>();
+            item->class_info_index = index1;
+            item->name_and_type_index = index2;
+            constant_infos.emplace_back(std::move(item));
         } else if (tag == name_and_type_info) {
+            int16_t index1, index2;
+            ASSERT_READ(index1)
+            index1 = FromBigEndian16(index1);
+            ASSERT_READ(index2)
+            index2 = FromBigEndian16(index2);
+            auto item = std::make_unique<ConstantInfo_NameAndType>();
+            item->name_index = index1;
+            item->descriptor_index = index2;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == method_handle_info) {
+            int8_t kind;
+            int16_t index;
+            ASSERT_READ(kind)
+            ASSERT_READ(index)
+            index = FromBigEndian16(index);
+            auto item = std::make_unique<ConstantInfo_MethodHandle>();
+            item->refrence_kind = kind;
+            item->refrence_index = index;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == method_type_info) {
             int16_t index;
             ASSERT_READ(index)
             index = FromBigEndian16(index);
-            SESE_DEBUG("index %d", index);
+            auto item = std::make_unique<ConstantInfo_MethodType>();
+            item->descriptor_index = index;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == invoke_dynamic_info) {
+            int16_t index1, index2;
+            ASSERT_READ(index1)
+            index1 = FromBigEndian16(index1);
+            ASSERT_READ(index2)
+            index2 = FromBigEndian16(index2);
+            auto item = std::make_unique<ConstantInfo_InvokeDynamic>();
+            item->bootstrap_method_attr_index = index1;
+            item->name_and_type_index = index2;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == module_info) {
+            int16_t index;
             ASSERT_READ(index)
             index = FromBigEndian16(index);
-            SESE_DEBUG("index %d", index);
+            auto item = std::make_unique<ConstantInfo_Module>();
+            item->name_index = index;
+            constant_infos.emplace_back(std::move(item));
+        } else if (tag == package_info) {
+            int16_t index;
+            ASSERT_READ(index)
+            index = FromBigEndian16(index);
+            auto item = std::make_unique<ConstantInfo_Package>();
+            item->name_index = index;
+            constant_infos.emplace_back(std::move(item));
+        } else {
+            throw sese::Exception("unknow tag type");
         }
     }
 }
@@ -149,7 +254,7 @@ void jvm::Class::parseMethods() {
     methods_count = FromBigEndian16(methods_count);
     SESE_DEBUG("methods count %d", methods_count);
 
-    for (int i = 0; i< methods_count; ++i) {
+    for (int i = 0; i < methods_count; ++i) {
         MethodInfo method_info;
         ASSERT_READ(method_info.access_flags)
         method_info.access_flags = FromBigEndian16(method_info.access_flags);
@@ -196,4 +301,3 @@ void jvm::Class::parseAttributes() {
         attribute_infos.push_back(attribute_info);
     }
 }
-

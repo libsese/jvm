@@ -20,7 +20,98 @@ namespace jvm {
             name_and_type_info = 12,
             method_handle_info = 15,
             method_type_info = 16,
-            invoke_dynamic_info = 18
+            invoke_dynamic_info = 18,
+            module_info = 19,
+            package_info = 20
+        };
+
+        struct ConstantInfo {
+            virtual ~ConstantInfo() = default;
+
+            uint8_t tag;
+        };
+
+        struct ConstantInfo_Utf8 final : ConstantInfo {
+            std::string bytes;
+        };
+
+        struct ConstantInfo_Integer final : ConstantInfo {
+            int32_t bytes;
+        };
+
+        struct ConstantInfo_Float final : ConstantInfo {
+            float_t bytes;
+        };
+
+        struct ConstantInfo_Long final : ConstantInfo {
+            int64_t bytes;
+        };
+
+        struct ConstantInfo_Double final : ConstantInfo {
+            double_t bytes;
+        };
+
+        struct ConstantInfo_Class final : ConstantInfo {
+            uint16_t index;
+        };
+
+        struct ConstantInfo_String final : ConstantInfo {
+            uint16_t index;
+        };
+
+        struct ConstantInfo_FieldRef final : ConstantInfo {
+            uint16_t class_info_index;
+            uint16_t name_and_type_index;
+        };
+
+        struct ConstantInfo_MethodRef final : ConstantInfo {
+            uint16_t class_info_index;
+            uint16_t name_and_type_index;
+        };
+
+        struct ConstantInfo_InterfaceMethodRef final : ConstantInfo {
+            uint16_t class_info_index;
+            uint16_t name_and_type_index;
+        };
+
+        struct ConstantInfo_NameAndType final : ConstantInfo {
+            uint16_t name_index;
+            uint16_t descriptor_index;
+        };
+
+        struct ConstantInfo_MethodHandle final : ConstantInfo {
+            uint8_t refrence_kind;
+            uint16_t refrence_index;
+        };
+
+        struct ConstantInfo_MethodType final : ConstantInfo {
+            uint16_t descriptor_index;
+        };
+
+        struct ConstantInfo_InvokeDynamic final : ConstantInfo {
+            uint16_t bootstrap_method_attr_index;
+            uint16_t name_and_type_index;
+        };
+
+        struct ConstantInfo_Module final : ConstantInfo {
+            uint16_t name_index;
+        };
+
+        struct ConstantInfo_Package final : ConstantInfo {
+            uint16_t name_index;
+        };
+
+        enum AccessFlag : int32_t {
+            public_ = 0x0001,
+            private_ = 0x0002,
+            protected_ = 0x0004,
+            static_ = 0x0008,
+            final_ = 0x0010,
+            voilatie = 0x0040,
+            transient = 0x0080,
+            synthetic = 0x1000,
+            enum_ = 0x40000,
+            module_ = 0x8000,
         };
 
         struct AttributeInfo {
@@ -69,6 +160,7 @@ namespace jvm {
         uint32_t magic{};
         uint16_t minor{}, major{};
         uint16_t constant_pool_count{};
+        std::vector<std::unique_ptr<ConstantInfo>> constant_infos;
         uint16_t access_flags{};
         uint16_t this_class{};
         uint16_t super_class{};
