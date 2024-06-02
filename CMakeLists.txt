@@ -13,6 +13,7 @@ target_sources(jvm PRIVATE
         src/jvm/Class.cc
         src/jvm/Class_Conv.cc
         src/jvm/Class_Parse.cc
+        src/jvm/Opcode.h
 )
 find_package(Sese CONFIG REQUIRED)
 target_link_libraries(jvm PUBLIC Sese::Core)
