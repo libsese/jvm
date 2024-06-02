@@ -18,4 +18,5 @@ TEST(TestClass, Getter) {
     SESE_DEBUG("%s %s", cl.getSuperName().c_str(), cl.getThisName().c_str());
     cl.printMethods();
     cl.printFields();
+    cl.printAttributes();
 }

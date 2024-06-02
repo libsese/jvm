@@ -4,6 +4,12 @@
 #include <sese/util/Endian.h>
 #include <sese/util/Exception.h>
 
+inline std::string getUtf8(const std::vector<std::unique_ptr<jvm::Class::ConstantInfo> > &constants, uint16_t index) {
+    auto string_ptr = &constants[index - 1];
+    auto string_info = dynamic_cast<jvm::Class::ConstantInfo_Utf8 *>(string_ptr->get());
+    return string_info->bytes;
+}
+
 void jvm::Class::parse() {
     parseMagicNumber();
     parseVersion();
@@ -194,6 +200,7 @@ void jvm::Class::parseClass() {
     super_class = FromBigEndian16(super_class);
     SESE_DEBUG("super class %d", super_class);
 
+    uint16_t interface_count;
     ASSERT_READ(interface_count)
     interface_count = FromBigEndian16(interface_count);
     SESE_DEBUG("interface count %d", interface_count);
@@ -209,6 +216,7 @@ void jvm::Class::parseClass() {
 }
 
 void jvm::Class::parseFields() {
+    int16_t fields_count;
     ASSERT_READ(fields_count)
     fields_count = FromBigEndian16(fields_count);
     SESE_DEBUG("fields count %d", fields_count);
@@ -216,22 +224,28 @@ void jvm::Class::parseFields() {
     field_infos.reserve(fields_count);
     for (int i = 0; i < fields_count; ++i) {
         FieldInfo field_info;
+        uint16_t name_index, descriptor_index, attributes_count;
         ASSERT_READ(field_info.access_flags)
         field_info.access_flags = FromBigEndian16(field_info.access_flags);
-        ASSERT_READ(field_info.name_index)
-        field_info.name_index = FromBigEndian16(field_info.name_index);
-        ASSERT_READ(field_info.descriptor_index)
-        field_info.descriptor_index = FromBigEndian16(field_info.descriptor_index);
-        ASSERT_READ(field_info.attributes_count)
-        field_info.attributes_count = FromBigEndian16(field_info.attributes_count);
-        field_info.attribute_infos.reserve(field_info.attributes_count);
-        for (int j = 0; i < field_info.attributes_count; j++) {
+        ASSERT_READ(name_index)
+        name_index = FromBigEndian16(name_index);
+        field_info.name = getUtf8(constant_infos, name_index);
+        ASSERT_READ(descriptor_index)
+        descriptor_index = FromBigEndian16(descriptor_index);
+        field_info.descriptor = getUtf8(constant_infos, descriptor_index);
+        ASSERT_READ(attributes_count)
+        attributes_count = FromBigEndian16(attributes_count);
+        field_info.attribute_infos.reserve(attributes_count);
+        for (int j = 0; i < attributes_count; j++) {
             AttributeInfo attribute_info;
-            ASSERT_READ(attribute_info.name_index)
-            ASSERT_READ(attribute_info.length)
-            attribute_info.length = FromBigEndian32(attribute_info.length);
-            attribute_info.info.reserve(attribute_info.length);
-            for (int k = 0; k < attribute_info.length; k++) {
+            uint32_t length;
+            ASSERT_READ(name_index)
+            name_index = FromBigEndian16(name_index);
+            attribute_info.name = getUtf8(constant_infos, name_index);
+            ASSERT_READ(length)
+            length = FromBigEndian32(length);
+            attribute_info.info.reserve(length);
+            for (int k = 0; k < length; k++) {
                 uint8_t byte;
                 ASSERT_READ(byte)
                 attribute_info.info.push_back(byte);
@@ -243,28 +257,35 @@ void jvm::Class::parseFields() {
 }
 
 void jvm::Class::parseMethods() {
+    uint16_t methods_count;
     ASSERT_READ(methods_count)
     methods_count = FromBigEndian16(methods_count);
     SESE_DEBUG("methods count %d", methods_count);
 
     for (int i = 0; i < methods_count; ++i) {
         MethodInfo method_info;
+        uint16_t name_index, descriptor_index, attributes_count;
         ASSERT_READ(method_info.access_flags)
         method_info.access_flags = FromBigEndian16(method_info.access_flags);
-        ASSERT_READ(method_info.name_index)
-        method_info.name_index = FromBigEndian16(method_info.name_index);
-        ASSERT_READ(method_info.descriptor_index)
-        method_info.descriptor_index = FromBigEndian16(method_info.descriptor_index);
-        ASSERT_READ(method_info.attributes_count)
-        method_info.attributes_count = FromBigEndian16(method_info.attributes_count);
-        method_info.attribute_infos.reserve(method_info.attributes_count);
-        for (int j = 0; j < method_info.attributes_count; ++j) {
+        ASSERT_READ(name_index)
+        name_index = FromBigEndian16(name_index);
+        method_info.name = getUtf8(constant_infos, name_index);
+        ASSERT_READ(descriptor_index)
+        descriptor_index = FromBigEndian16(descriptor_index);
+        method_info.descriptor = getUtf8(constant_infos, descriptor_index);
+        ASSERT_READ(attributes_count)
+        attributes_count = FromBigEndian16(attributes_count);
+        method_info.attribute_infos.reserve(attributes_count);
+        for (int j = 0; j < attributes_count; ++j) {
             AttributeInfo attribute_info;
-            ASSERT_READ(attribute_info.name_index)
-            ASSERT_READ(attribute_info.length)
-            attribute_info.length = FromBigEndian32(attribute_info.length);
-            attribute_info.info.reserve(attribute_info.length);
-            for (int k = 0; k < attribute_info.length; k++) {
+            uint32_t length;
+            ASSERT_READ(name_index)
+            name_index = FromBigEndian16(name_index);
+            attribute_info.name = getUtf8(constant_infos, name_index);
+            ASSERT_READ(length)
+            length = FromBigEndian32(length);
+            attribute_info.info.reserve(length);
+            for (int k = 0; k < length; k++) {
                 uint8_t byte;
                 ASSERT_READ(byte)
                 attribute_info.info.push_back(byte);
@@ -276,17 +297,22 @@ void jvm::Class::parseMethods() {
 }
 
 void jvm::Class::parseAttributes() {
+    uint16_t attributes_count;
     ASSERT_READ(attributes_count)
     attributes_count = FromBigEndian16(attributes_count);
     SESE_DEBUG("attributes count %d", attributes_count);
     attribute_infos.reserve(attributes_count);
     for (int j = 0; j < attributes_count; ++j) {
         AttributeInfo attribute_info;
-        ASSERT_READ(attribute_info.name_index)
-        ASSERT_READ(attribute_info.length)
-        attribute_info.length = FromBigEndian32(attribute_info.length);
-        attribute_info.info.reserve(attribute_info.length);
-        for (int k = 0; k < attribute_info.length; k++) {
+        uint16_t name_index;
+        uint32_t length;
+        ASSERT_READ(name_index)
+        name_index = FromBigEndian16(name_index);
+        attribute_info.name = getUtf8(constant_infos, name_index);
+        ASSERT_READ(length)
+        length = FromBigEndian32(length);
+        attribute_info.info.reserve(length);
+        for (int k = 0; k < length; k++) {
             uint8_t byte;
             ASSERT_READ(byte)
             attribute_info.info.push_back(byte);

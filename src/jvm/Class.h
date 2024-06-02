@@ -135,25 +135,30 @@ namespace jvm {
         static bool isModule(int32_t flags);
 
         struct AttributeInfo {
-            uint16_t name_index{};
-            uint32_t length{};
+            // uint16_t name_index{};
+            std::string name{};
+            // uint32_t length{};
             std::vector<uint8_t> info;
         };
 
         struct FieldInfo {
             uint16_t access_flags{};
-            uint16_t name_index{};
-            uint16_t descriptor_index{};
-            uint16_t attributes_count{};
+            // uint16_t name_index{};
+            std::string name{};
+            // uint16_t descriptor_index{};
+            std::string descriptor{};
+            // uint16_t attributes_count{};
             std::vector<AttributeInfo> attribute_infos{};
         };
 
         struct MethodInfo {
-            uint16_t access_flags;
-            uint16_t name_index;
-            uint16_t descriptor_index;
-            uint16_t attributes_count;
-            std::vector<AttributeInfo> attribute_infos;
+            uint16_t access_flags{};
+            // uint16_t name_index;
+            std::string name{};
+            // uint16_t descriptor_index;
+            std::string descriptor{};
+            // uint16_t attributes_count;
+            std::vector<AttributeInfo> attribute_infos{};
         };
 
         explicit Class(const std::string &path);
@@ -167,6 +172,10 @@ namespace jvm {
         void printFields() const;
 
         void printMethods() const;
+
+        void printAttributes() const;
+
+        static void printAttributes(const std::vector<AttributeInfo> &attribute_infos);
 
     private:
         void parseMagicNumber();
@@ -192,13 +201,13 @@ namespace jvm {
         uint16_t access_flags{};
         uint16_t this_class{};
         uint16_t super_class{};
-        uint16_t interface_count{};
+        // uint16_t interface_count{};
         std::vector<uint16_t> interfaces{};
-        uint16_t fields_count{};
+        // uint16_t fields_count{};
         std::vector<FieldInfo> field_infos{};
-        uint16_t methods_count{};
+        // uint16_t methods_count{};
         std::vector<MethodInfo> method_infos{};
-        uint16_t attributes_count{};
+        // uint16_t attributes_count{};
         std::vector<AttributeInfo> attribute_infos{};
     };
 }

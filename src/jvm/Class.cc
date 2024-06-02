@@ -51,28 +51,6 @@ jvm::Class::Class(const std::string &path) {
     SESE_DEBUG("open success");
 }
 
-void jvm::Class::printMethods() const {
-    sese::text::StringBuilder builder;
-    for (auto &&method: method_infos) {
-        auto name_ptr = &constant_infos[method.name_index - 1];
-        auto name_info = dynamic_cast<ConstantInfo_Utf8 *>(name_ptr->get());
-        auto name = name_info->bytes == "<init>" ? getThisName() : name_info->bytes;
-        if (isPublic(method.access_flags)) {
-            builder.append("public ");
-        } else if (isPrivate(method.access_flags)) {
-            builder.append("private ");
-        } else if (isProtected(method.access_flags)) {
-            builder.append("protected ");
-        }
-        if (isStatic(method.access_flags)) {
-            builder.append("static ");
-        }
-        builder.append(name);
-        SESE_DEBUG("method %s", builder.toString().c_str());
-        builder.clear();
-    }
-}
-
 void jvm::Class::printFields() const {
     sese::text::StringBuilder builder;
     for (auto &&field: field_infos) {
@@ -86,11 +64,41 @@ void jvm::Class::printFields() const {
         if (isStatic(field.access_flags)) {
             builder.append("static ");
         }
-        auto name_ptr = &constant_infos[field.name_index - 1];
-        auto name_info = dynamic_cast<ConstantInfo_Utf8 *>(name_ptr->get());
-        auto name = name_info->bytes;
-        builder.append(name);
+        builder.append(field.name);
         SESE_DEBUG("field %s", builder.toString().c_str());
         builder.clear();
+        printAttributes(field.attribute_infos);
+    }
+}
+
+void jvm::Class::printMethods() const {
+    sese::text::StringBuilder builder;
+    for (auto &&method: method_infos) {
+        auto name = method.name == "<init>" ? getThisName() : method.name;
+        if (isPublic(method.access_flags)) {
+            builder.append("public ");
+        } else if (isPrivate(method.access_flags)) {
+            builder.append("private ");
+        } else if (isProtected(method.access_flags)) {
+            builder.append("protected ");
+        }
+        if (isStatic(method.access_flags)) {
+            builder.append("static ");
+        }
+        builder.append(name);
+        SESE_DEBUG("method %s", builder.toString().c_str());
+        builder.clear();
+        printAttributes(method.attribute_infos);
+    }
+}
+
+void jvm::Class::printAttributes() const {
+    printAttributes(attribute_infos);
+}
+
+
+void jvm::Class::printAttributes(const std::vector<AttributeInfo> &attribute_infos) {
+    for (auto &&attr: attribute_infos) {
+        SESE_DEBUG("%s", attr.name.c_str());
     }
 }
