@@ -43,6 +43,7 @@ void jvm::Class::parseVersion(sese::io::InputStream *input_stream) {
 }
 
 void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
+    uint16_t constant_pool_count;
     ASSERT_READ(constant_pool_count)
     constant_pool_count = FromBigEndian16(constant_pool_count);
     SESE_DEBUG("constant pool count %d", constant_pool_count);
@@ -79,17 +80,23 @@ void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
         } else if (tag == long_info) {
             int64_t bytes;
             ASSERT_READ(bytes)
-            bytes = FromBigEndian32(bytes);
+            bytes = FromBigEndian64(bytes);
             auto item = std::make_unique<ConstantInfo_Long>();
             item->bytes = bytes;
             constant_infos.emplace_back(std::move(item));
+
+            constant_infos.emplace_back(std::make_unique<ConstantInfo>());
+            ++i;
         } else if (tag == double_info) {
             double bytes;
             ASSERT_READ(bytes)
-            // bytes = FromBigEndian32(bytes);
+            // bytes = FromBigEndian64(bytes);
             auto item = std::make_unique<ConstantInfo_Double>();
             item->bytes = bytes;
             constant_infos.emplace_back(std::move(item));
+
+            constant_infos.emplace_back(std::make_unique<ConstantInfo>());
+            ++i;
         } else if (tag == class_info) {
             int16_t index;
             ASSERT_READ(index)

@@ -166,7 +166,7 @@ namespace jvm {
 
         uint32_t magic{};
         uint16_t minor{}, major{};
-        uint16_t constant_pool_count{};
+        // uint16_t constant_pool_count{};
         std::vector<std::unique_ptr<ConstantInfo> > constant_infos;
         uint16_t access_flags{};
         uint16_t this_class{};
