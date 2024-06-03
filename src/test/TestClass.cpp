@@ -13,7 +13,9 @@ TEST(TestClass, Parse) {
 
 TEST(TestClass, Getter) {
     auto cl = jvm::ClassLoader::loadFromFile("C:/Users/kaoru/Desktop/Hello.class");
-    SESE_DEBUG("%s %s", cl->getSuperName().c_str(), cl->getThisName().c_str());
+    // SESE_DEBUG("%s %s", cl->getSuperName().c_str(), cl->getThisName().c_str());
+    EXPECT_EQ(cl->getSuperName(), "java/lang/Object");
+    EXPECT_EQ(cl->getThisName(), "Hello");
     cl->printMethods();
     cl->printFields();
     cl->printAttributes();

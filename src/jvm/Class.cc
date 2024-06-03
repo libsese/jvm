@@ -21,8 +21,10 @@ void jvm::Class::printFields() const {
         if (field.isStatic()) {
             builder.append("static ");
         }
+        builder.append(field.type.toString());
+        builder.append(' ');
         builder.append(field.name);
-        SESE_DEBUG("field %s", builder.toString().c_str());
+        SESE_DEBUG("%s", builder.toString().c_str());
         builder.clear();
         printAttributes(field.attribute_infos);
     }
@@ -42,8 +44,21 @@ void jvm::Class::printMethods() const {
         if (method.isStatic()) {
             builder.append("static ");
         }
+        builder.append(method.returnType.toString());
+        builder.append(' ');
         builder.append(name);
-        SESE_DEBUG("method %s", builder.toString().c_str());
+        builder.append('(');
+        bool first = true;
+        for (auto &&type : method.argsType) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append(',');
+            }
+            builder.append(type.toString());
+        }
+        builder.append(')');
+        SESE_DEBUG("%s", builder.toString().c_str());
         builder.clear();
         printAttributes(method.attribute_infos);
     }

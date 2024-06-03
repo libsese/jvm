@@ -1,7 +1,10 @@
 #pragma once
 
 #include <jvm/AccessFlags.h>
+#include <jvm/Type.h>
+
 #include <sese/io/InputStream.h>
+
 #include <vector>
 
 namespace jvm {
@@ -113,7 +116,8 @@ namespace jvm {
             // uint16_t name_index{};
             std::string name{};
             // uint16_t descriptor_index{};
-            std::string descriptor{};
+            // std::string descriptor{};
+            TypeInfo type;
             // uint16_t attributes_count{};
             std::vector<AttributeInfo> attribute_infos{};
         };
@@ -122,7 +126,9 @@ namespace jvm {
             // uint16_t name_index;
             std::string name{};
             // uint16_t descriptor_index;
-            std::string descriptor{};
+            // std::string descriptor{};
+            TypeInfo returnType;
+            std::vector<TypeInfo> argsType;
             // uint16_t attributes_count;
             std::vector<AttributeInfo> attribute_infos{};
         };

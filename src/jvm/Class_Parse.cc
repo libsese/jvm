@@ -1,8 +1,12 @@
 #include "Class.h"
 
 #include <sese/Log.h>
+#include <sese/text/StringBuilder.h>
 #include <sese/util/Endian.h>
 #include <sese/util/Exception.h>
+
+#undef SESE_DEBUG
+#define SESE_DEBUG(...)
 
 inline std::string getUtf8(const std::vector<std::unique_ptr<jvm::Class::ConstantInfo> > &constants, uint16_t index) {
     auto string_ptr = &constants[index - 1];
@@ -232,7 +236,8 @@ void jvm::Class::parseFields(sese::io::InputStream *input_stream) {
         field_info.name = getUtf8(constant_infos, name_index);
         ASSERT_READ(descriptor_index)
         descriptor_index = FromBigEndian16(descriptor_index);
-        field_info.descriptor = getUtf8(constant_infos, descriptor_index);
+        auto descriptor = getUtf8(constant_infos, descriptor_index);
+        field_info.type.parse(descriptor);
         ASSERT_READ(attributes_count)
         attributes_count = FromBigEndian16(attributes_count);
         field_info.attribute_infos.reserve(attributes_count);
@@ -272,7 +277,26 @@ void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
         method_info.name = getUtf8(constant_infos, name_index);
         ASSERT_READ(descriptor_index)
         descriptor_index = FromBigEndian16(descriptor_index);
-        method_info.descriptor = getUtf8(constant_infos, descriptor_index);
+        auto descriptor = getUtf8(constant_infos, descriptor_index);
+        descriptor = descriptor.substr(1, descriptor.length() - 1);
+        auto types = sese::text::StringBuilder::split(descriptor, ";");
+        for (int j = 0; j < types.size(); ++j) {
+            if (j == types.size() - 1) {
+                auto pos = types[j].find_first_of(')');
+                auto return_ = types[j].substr(pos + 1, types[j].length() - pos - 1);
+                auto arg = types[j].substr(0, pos);
+                method_info.returnType.parse(return_);
+                if (!arg.empty()) {
+                    TypeInfo info;
+                    info.parse(arg);
+                    method_info.argsType.emplace_back(info);
+                }
+            } else {
+                TypeInfo info;
+                info.parse(types[j]);
+                method_info.argsType.emplace_back(info);
+            }
+        }
         ASSERT_READ(attributes_count)
         attributes_count = FromBigEndian16(attributes_count);
         method_info.attribute_infos.reserve(attributes_count);
