@@ -1,5 +1,6 @@
 class Hello {
     public static void main(String args[]) {
+        Hello nullable = null;
         Hello hello = new Hello();
         hello.test1(args[0], 20);
     }

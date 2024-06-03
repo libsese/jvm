@@ -158,8 +158,8 @@ void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
             ASSERT_READ(index)
             index = FromBigEndian16(index);
             auto item = std::make_unique<ConstantInfo_MethodHandle>();
-            item->refrence_kind = kind;
-            item->refrence_index = index;
+            item->reference_kind = kind;
+            item->reference_index = index;
             constant_infos.emplace_back(std::move(item));
         } else if (tag == method_type_info) {
             int16_t index;
@@ -193,7 +193,7 @@ void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
             item->name_index = index;
             constant_infos.emplace_back(std::move(item));
         } else {
-            throw sese::Exception("unknow tag type");
+            throw sese::Exception("unknown tag type");
         }
     }
 }

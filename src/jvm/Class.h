@@ -84,8 +84,8 @@ namespace jvm {
         };
 
         struct ConstantInfo_MethodHandle final : ConstantInfo {
-            uint8_t refrence_kind;
-            uint16_t refrence_index;
+            uint8_t reference_kind;
+            uint16_t reference_index;
         };
 
         struct ConstantInfo_MethodType final : ConstantInfo {
