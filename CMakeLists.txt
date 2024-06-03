@@ -44,3 +44,11 @@ target_sources(test PRIVATE
 target_link_libraries(test PUBLIC jvm)
 find_package(GTest CONFIG REQUIRED)
 target_link_libraries(test PRIVATE GTest::gtest)
+
+add_custom_command(
+        TARGET test
+        POST_BUILD
+        COMMAND
+        javac "${CMAKE_SOURCE_DIR}/src/test/resource/Hello.java"
+)
+target_compile_definitions(test PRIVATE "PATH_TO_HELLO_CLASS=\"${CMAKE_SOURCE_DIR}/src/test/resource/Hello.class\"")
