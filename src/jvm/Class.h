@@ -1,10 +1,11 @@
 #pragma once
 
-#include <sese/io/FileStream.h>
+#include <jvm/AccessFlags.h>
+#include <sese/io/InputStream.h>
 #include <vector>
 
 namespace jvm {
-    class Class {
+    class Class : public AccessFlags {
     public:
         enum Constant : int8_t {
             utf8_info = 1,
@@ -101,39 +102,6 @@ namespace jvm {
             uint16_t name_index;
         };
 
-        enum AccessFlag : int32_t {
-            public_ = 0x0001,
-            private_ = 0x0002,
-            protected_ = 0x0004,
-            static_ = 0x0008,
-            final_ = 0x0010,
-            voilatie = 0x0040,
-            transient = 0x0080,
-            synthetic = 0x1000,
-            enum_ = 0x40000,
-            module_ = 0x8000,
-        };
-
-        static bool isPublic(int32_t flags);
-
-        static bool isPrivate(int32_t flags);
-
-        static bool isProtected(int32_t flags);
-
-        static bool isStatic(int32_t flags);
-
-        static bool isFinal(int32_t flags);
-
-        static bool isVoilatie(int32_t flags);
-
-        static bool isTransient(int32_t flags);
-
-        static bool isSynthetic(int32_t flags);
-
-        static bool isEnum(int32_t flags);
-
-        static bool isModule(int32_t flags);
-
         struct AttributeInfo {
             // uint16_t name_index{};
             std::string name{};
@@ -141,8 +109,7 @@ namespace jvm {
             std::vector<uint8_t> info;
         };
 
-        struct FieldInfo {
-            uint16_t access_flags{};
+        struct FieldInfo : AccessFlags {
             // uint16_t name_index{};
             std::string name{};
             // uint16_t descriptor_index{};
@@ -151,8 +118,7 @@ namespace jvm {
             std::vector<AttributeInfo> attribute_infos{};
         };
 
-        struct MethodInfo {
-            uint16_t access_flags{};
+        struct MethodInfo : AccessFlags {
             // uint16_t name_index;
             std::string name{};
             // uint16_t descriptor_index;
@@ -161,9 +127,7 @@ namespace jvm {
             std::vector<AttributeInfo> attribute_infos{};
         };
 
-        explicit Class(const std::string &path);
-
-        void parse();
+        explicit Class(sese::io::InputStream *input_stream);
 
         [[nodiscard]] std::string getThisName() const;
 
@@ -178,21 +142,21 @@ namespace jvm {
         static void printAttributes(const std::vector<AttributeInfo> &attribute_infos);
 
     private:
-        void parseMagicNumber();
+        void parse(sese::io::InputStream *input_stream);
 
-        void parseVersion();
+        void parseMagicNumber(sese::io::InputStream *input_stream);
 
-        void parseConstantPool();
+        void parseVersion(sese::io::InputStream *input_stream);
 
-        void parseClass();
+        void parseConstantPool(sese::io::InputStream *input_stream);
 
-        void parseFields();
+        void parseClass(sese::io::InputStream *input_stream);
 
-        void parseMethods();
+        void parseFields(sese::io::InputStream *input_stream);
 
-        void parseAttributes();
+        void parseMethods(sese::io::InputStream *input_stream);
 
-        sese::io::File::Ptr file{};
+        void parseAttributes(sese::io::InputStream *input_stream);
 
         uint32_t magic{};
         uint16_t minor{}, major{};

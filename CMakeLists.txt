@@ -5,14 +5,21 @@ project(jvm)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if (MSVC)
+    add_compile_options(/utf-8)
+endif ()
+
 include_directories(src)
 
 add_library(jvm)
 target_sources(jvm PRIVATE
+        src/jvm/AccessFlags.h
         src/jvm/Class.h
         src/jvm/Class.cc
         src/jvm/Class_Conv.cc
         src/jvm/Class_Parse.cc
+        src/jvm/ClassLoader.h
+        src/jvm/ClassLoader.cc
         src/jvm/Opcode.h
 )
 find_package(Sese CONFIG REQUIRED)

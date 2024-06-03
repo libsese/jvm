@@ -10,26 +10,26 @@ inline std::string getUtf8(const std::vector<std::unique_ptr<jvm::Class::Constan
     return string_info->bytes;
 }
 
-void jvm::Class::parse() {
-    parseMagicNumber();
-    parseVersion();
-    parseConstantPool();
-    parseClass();
-    parseFields();
-    parseMethods();
-    parseAttributes();
+void jvm::Class::parse(sese::io::InputStream *input_stream) {
+    parseMagicNumber(input_stream);
+    parseVersion(input_stream);
+    parseConstantPool(input_stream);
+    parseClass(input_stream);
+    parseFields(input_stream);
+    parseMethods(input_stream);
+    parseAttributes(input_stream);
 }
 
-#define IF_READ(m) if (sizeof(m) != file->read(&m, sizeof(m)))
+#define IF_READ(m) if (sizeof(m) != input_stream->read(&m, sizeof(m)))
 #define ASSERT_READ(m) IF_READ(m) throw sese::Exception("failed to parse " #m);
 
-void jvm::Class::parseMagicNumber() {
+void jvm::Class::parseMagicNumber(sese::io::InputStream *input_stream) {
     ASSERT_READ(magic)
     magic = ToBigEndian32(magic);
     SESE_DEBUG("magic number 0x%x", magic);
 }
 
-void jvm::Class::parseVersion() {
+void jvm::Class::parseVersion(sese::io::InputStream *input_stream) {
     ASSERT_READ(minor)
     minor = FromBigEndian16(minor);
     SESE_DEBUG("minor version %d", minor);
@@ -38,7 +38,7 @@ void jvm::Class::parseVersion() {
     SESE_DEBUG("major version %d", major);
 }
 
-void jvm::Class::parseConstantPool() {
+void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
     ASSERT_READ(constant_pool_count)
     constant_pool_count = FromBigEndian16(constant_pool_count);
     SESE_DEBUG("constant pool count %d", constant_pool_count);
@@ -51,7 +51,7 @@ void jvm::Class::parseConstantPool() {
             char bytes[UINT16_MAX]{};
             ASSERT_READ(length)
             length = FromBigEndian16(length);
-            if (length != file->read(bytes, length)) {
+            if (length != input_stream->read(bytes, length)) {
                 throw sese::Exception("failed to parse bytes");
             }
             auto item = std::make_unique<ConstantInfo_Utf8>();
@@ -187,7 +187,7 @@ void jvm::Class::parseConstantPool() {
     }
 }
 
-void jvm::Class::parseClass() {
+void jvm::Class::parseClass(sese::io::InputStream *input_stream) {
     ASSERT_READ(access_flags)
     access_flags = FromBigEndian16(access_flags);
     SESE_DEBUG("access flags 0x%x", access_flags);
@@ -215,7 +215,7 @@ void jvm::Class::parseClass() {
     }
 }
 
-void jvm::Class::parseFields() {
+void jvm::Class::parseFields(sese::io::InputStream *input_stream) {
     int16_t fields_count;
     ASSERT_READ(fields_count)
     fields_count = FromBigEndian16(fields_count);
@@ -256,7 +256,7 @@ void jvm::Class::parseFields() {
     }
 }
 
-void jvm::Class::parseMethods() {
+void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
     uint16_t methods_count;
     ASSERT_READ(methods_count)
     methods_count = FromBigEndian16(methods_count);
@@ -296,7 +296,7 @@ void jvm::Class::parseMethods() {
     }
 }
 
-void jvm::Class::parseAttributes() {
+void jvm::Class::parseAttributes(sese::io::InputStream *input_stream) {
     uint16_t attributes_count;
     ASSERT_READ(attributes_count)
     attributes_count = FromBigEndian16(attributes_count);
