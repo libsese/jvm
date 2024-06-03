@@ -21,6 +21,8 @@ target_sources(jvm PRIVATE
         src/jvm/ClassLoader.h
         src/jvm/ClassLoader.cc
         src/jvm/Opcode.h
+        src/jvm/Runtime.h
+        src/jvm/Runtime.cc
 )
 find_package(Sese CONFIG REQUIRED)
 target_link_libraries(jvm PUBLIC Sese::Core)
@@ -35,6 +37,7 @@ add_executable(test)
 target_sources(test PRIVATE
         src/test/Main.cpp
         src/test/TestClass.cpp
+        src/test/TestRuntime.cpp
 )
 target_link_libraries(test PUBLIC jvm)
 find_package(GTest CONFIG REQUIRED)
