@@ -287,24 +287,26 @@ void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
         descriptor_index = FromBigEndian16(descriptor_index);
         auto descriptor = getUtf8(constant_infos, descriptor_index);
         descriptor = descriptor.substr(1, descriptor.length() - 1);
-        auto types = sese::text::StringBuilder::split(descriptor, ";");
-        for (int j = 0; j < types.size(); ++j) {
-            if (j == types.size() - 1) {
-                auto pos = types[j].find_first_of(')');
-                auto return_ = types[j].substr(pos + 1, types[j].length() - pos - 1);
-                auto arg = types[j].substr(0, pos);
-                method_info.return_type.parse(return_);
-                if (!arg.empty()) {
-                    TypeInfo info;
-                    info.parse(arg);
-                    method_info.args_type.emplace_back(info);
-                }
+        auto pos1 = descriptor.find('(');
+        auto pos2 = descriptor.find(')');
+        auto params = descriptor.substr(pos1 + 1, pos2 - pos1 - 1);
+        auto return_ = descriptor.substr(pos2 + 1);
+        for (int l = 0; l < params.size();) {
+            TypeInfo type_info;
+            auto prefix = params.find_first_not_of('[');
+            if (prefix == std::string::npos) prefix = 0;
+            if (params[l + prefix] == 'L') {
+                auto end = params.find_first_of(';');
+                auto param = params.substr(l, end + 1);
+                type_info.parse(param);
+                l += static_cast<int>(end) + 1;
             } else {
-                TypeInfo info;
-                info.parse(types[j]);
-                method_info.args_type.emplace_back(info);
+                type_info.parse(params.substr(l, 1));
+                l += 1;
             }
+            method_info.args_type.emplace_back(std::move(type_info));
         }
+        method_info.return_type.parse(return_);
         ASSERT_READ(attributes_count)
         attributes_count = FromBigEndian16(attributes_count);
         method_info.attribute_infos.reserve(attributes_count);

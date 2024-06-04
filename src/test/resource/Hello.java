@@ -21,6 +21,10 @@ class Hello {
         return 1;
     }
 
+    public int test3(int i, long j, double d) {
+        return 0;
+    }
+
     boolean bool = false;
     private int a;
     public int b;

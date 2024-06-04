@@ -19,7 +19,7 @@ void jvm::TypeInfo::parse(std::string raw_name) {
     }
     if (raw_name[0] == 'L') {
         type = object;
-        external_name = raw_name.substr(1, raw_name.length() - 1);
+        external_name = raw_name.substr(1, raw_name.length() - 2);
         assert(!external_name.empty());
     }
 }
