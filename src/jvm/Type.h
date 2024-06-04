@@ -17,7 +17,7 @@ namespace jvm {
     };
 
     struct TypeInfo {
-        bool isArray{false};
+        uint8_t isArray{0};
         Type type{void_};
         std::string externalName;
 

@@ -7,9 +7,10 @@
 
 void jvm::TypeInfo::parse(std::string raw_name) {
     assert(!raw_name.empty());
-    if (raw_name[0] == '[') {
-        isArray = true;
-        raw_name = raw_name.substr(1, raw_name.length() - 1);
+    // 计算 raw_name 中 [ 的个数
+    isArray = std::count(raw_name.begin(), raw_name.end(), '[');
+    if (isArray) {
+        raw_name = raw_name.substr(isArray, raw_name.length() - isArray);
     }
     assert(!raw_name.empty());
     if (raw_name.length() == 1 && raw_name[0] != 'L') {
@@ -69,6 +70,8 @@ std::string jvm::TypeInfo::toString() const {
             builder.append(externalName);
             break;
     }
-    if (isArray) builder.append("[]");
+    for (uint8_t i = 0; i < isArray; i++) {
+        builder.append("[]");
+    }
     return builder.toString();
 }
