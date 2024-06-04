@@ -17,9 +17,9 @@ namespace jvm {
     };
 
     struct TypeInfo {
-        uint8_t isArray{0};
+        uint8_t is_array{0};
         Type type{void_};
-        std::string externalName;
+        std::string external_name;
 
         void parse(std::string raw_name);
 

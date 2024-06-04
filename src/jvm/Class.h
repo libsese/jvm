@@ -142,8 +142,8 @@ namespace jvm {
             std::string name{};
             // uint16_t descriptor_index;
             // std::string descriptor{};
-            TypeInfo returnType;
-            std::vector<TypeInfo> argsType;
+            TypeInfo return_type;
+            std::vector<TypeInfo> args_type;
             // uint16_t attributes_count;
             std::vector<AttributeInfo> attribute_infos{};
             std::unique_ptr<CodeInfo> code_info;

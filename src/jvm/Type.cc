@@ -8,9 +8,9 @@
 void jvm::TypeInfo::parse(std::string raw_name) {
     assert(!raw_name.empty());
     // 计算 raw_name 中 [ 的个数
-    isArray = std::count(raw_name.begin(), raw_name.end(), '[');
-    if (isArray) {
-        raw_name = raw_name.substr(isArray, raw_name.length() - isArray);
+    is_array = std::count(raw_name.begin(), raw_name.end(), '[');
+    if (is_array) {
+        raw_name = raw_name.substr(is_array, raw_name.length() - is_array);
     }
     assert(!raw_name.empty());
     if (raw_name.length() == 1 && raw_name[0] != 'L') {
@@ -19,21 +19,21 @@ void jvm::TypeInfo::parse(std::string raw_name) {
     }
     if (raw_name[0] == 'L') {
         type = object;
-        externalName = raw_name.substr(1, raw_name.length() - 1);
-        assert(!externalName.empty());
+        external_name = raw_name.substr(1, raw_name.length() - 1);
+        assert(!external_name.empty());
     }
 }
 
 void jvm::TypeInfo::set(Type type, bool array) {
     assert(type != object);
     this->type = type;
-    this->isArray = array;
+    this->is_array = array;
 }
 
 void jvm::TypeInfo::set(const std::string &object_name, bool array) {
     type = object;
-    externalName = object_name;
-    isArray = array;
+    external_name = object_name;
+    is_array = array;
 }
 
 std::string jvm::TypeInfo::toString() const {
@@ -67,10 +67,10 @@ std::string jvm::TypeInfo::toString() const {
             builder.append("boolean");
             break;
         case object:
-            builder.append(externalName);
+            builder.append(external_name);
             break;
     }
-    for (uint8_t i = 0; i < isArray; i++) {
+    for (uint8_t i = 0; i < is_array; i++) {
         builder.append("[]");
     }
     return builder.toString();

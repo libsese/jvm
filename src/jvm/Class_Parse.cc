@@ -293,16 +293,16 @@ void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
                 auto pos = types[j].find_first_of(')');
                 auto return_ = types[j].substr(pos + 1, types[j].length() - pos - 1);
                 auto arg = types[j].substr(0, pos);
-                method_info.returnType.parse(return_);
+                method_info.return_type.parse(return_);
                 if (!arg.empty()) {
                     TypeInfo info;
                     info.parse(arg);
-                    method_info.argsType.emplace_back(info);
+                    method_info.args_type.emplace_back(info);
                 }
             } else {
                 TypeInfo info;
                 info.parse(types[j]);
-                method_info.argsType.emplace_back(info);
+                method_info.args_type.emplace_back(info);
             }
         }
         ASSERT_READ(attributes_count)

@@ -44,12 +44,12 @@ void jvm::Class::printMethods() const {
         if (method.isStatic()) {
             builder.append("static ");
         }
-        builder.append(method.returnType.toString());
+        builder.append(method.return_type.toString());
         builder.append(' ');
         builder.append(name);
         builder.append('(');
         bool first = true;
-        for (auto &&type : method.argsType) {
+        for (auto &&type : method.args_type) {
             if (first) {
                 first = false;
             } else {

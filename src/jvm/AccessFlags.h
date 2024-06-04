@@ -9,7 +9,7 @@ namespace jvm {
         protected_ = 0x0004,
         static_ = 0x0008,
         final_ = 0x0010,
-        voilatie = 0x0040,
+        volatile_ = 0x0040,
         transient = 0x0080,
         synthetic = 0x1000,
         enum_ = 0x40000,
@@ -37,8 +37,8 @@ namespace jvm {
             return final_ & access_flags;
         }
 
-        [[nodiscard]] bool isVoilatie() const {
-            return voilatie & access_flags;
+        [[nodiscard]] bool isVolatile() const {
+            return volatile_ & access_flags;
         }
 
         [[nodiscard]] bool isTransient() const {
