@@ -119,11 +119,17 @@ namespace jvm {
             uint16_t type{};
         };
 
+        struct LineNumberInfo {
+            uint16_t start_pc;
+            uint16_t line_number;
+        };
+
         struct CodeInfo {
             uint16_t max_stack;
             uint16_t max_locals;
             std::vector<uint8_t> code;
             std::vector<ExceptionInfo> exception_infos;
+            std::vector<LineNumberInfo> line_infos;
             std::vector<AttributeInfo> attribute_infos;
         };
 
@@ -138,13 +144,9 @@ namespace jvm {
         };
 
         struct MethodInfo : AccessFlags {
-            // uint16_t name_index;
             std::string name{};
-            // uint16_t descriptor_index;
-            // std::string descriptor{};
             TypeInfo return_type;
             std::vector<TypeInfo> args_type;
-            // uint16_t attributes_count;
             std::vector<AttributeInfo> attribute_infos{};
             std::unique_ptr<CodeInfo> code_info;
             std::vector<ExceptionInfo> exception_infos;
@@ -155,6 +157,8 @@ namespace jvm {
         [[nodiscard]] std::string getThisName() const;
 
         [[nodiscard]] std::string getSuperName() const;
+
+        [[nodiscard]] const std::string &getSourceName() const { return source_file; }
 
         void printFields() const;
 

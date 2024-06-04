@@ -314,32 +314,22 @@ void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
             ASSERT_READ(name_index)
             name_index = FromBigEndian16(name_index);
             attribute_info.name = getUtf8(constant_infos, name_index);
+            ASSERT_READ(length)
+            length = FromBigEndian32(length);
             if (attribute_info.name == "Code") {
-                ASSERT_READ(length)
-                length = FromBigEndian32(length);
                 method_info.code_info = std::make_unique<CodeInfo>();
                 parseAttributeCode(input_stream, method_info.code_info.get());
             } else if (attribute_info.name == "Exceptions") {
                 uint16_t exceptions_count;
-                ASSERT_READ(length)
-                length = FromBigEndian32(length);
                 ASSERT_READ(exceptions_count)
                 exceptions_count = FromBigEndian16(exceptions_count);
                 for (int k = 0; k < exceptions_count; ++k) {
                     ExceptionInfo exception_info;
-                    // ASSERT_READ(exception_info.from)
-                    // exception_info.from = FromBigEndian16(exception_info.from);
-                    // ASSERT_READ(exception_info.to)
-                    // exception_info.to = FromBigEndian16(exception_info.to);
-                    // ASSERT_READ(exception_info.target)
-                    // exception_info.target = FromBigEndian16(exception_info.target);
                     ASSERT_READ(exception_info.type)
                     exception_info.type = FromBigEndian16(exception_info.type);
                     method_info.exception_infos.emplace_back(exception_info);
                 }
             } else {
-                ASSERT_READ(length)
-                length = FromBigEndian32(length);
                 attribute_info.info.reserve(length);
                 attribute_info.info.resize(length);
                 if (length != input_stream->read(attribute_info.info.data(), length)) {
@@ -363,17 +353,15 @@ void jvm::Class::parseAttributes(sese::io::InputStream *input_stream) {
         uint16_t name_index;
         uint32_t length;
         ASSERT_READ(name_index)
+        ASSERT_READ(length)
+        length = FromBigEndian32(length);
         name_index = FromBigEndian16(name_index);
         attribute_info.name = getUtf8(constant_infos, name_index);
         if (attribute_info.name == "SourceFile") {
-            ASSERT_READ(length)
-            length = FromBigEndian32(length);
             ASSERT_READ(name_index)
             name_index = FromBigEndian16(name_index);
             source_file = getUtf8(constant_infos, name_index);
         } else {
-            ASSERT_READ(length)
-            length = FromBigEndian32(length);
             attribute_info.info.reserve(length);
             attribute_info.info.resize(length);
             if (length != input_stream->read(attribute_info.info.data(), length)) {
@@ -424,11 +412,25 @@ void jvm::Class::parseAttributeCode(sese::io::InputStream *input_stream, CodeInf
         attribute_info.name = getUtf8(constant_infos, name_index);
         ASSERT_READ(length)
         length = FromBigEndian32(length);
-        attribute_info.info.reserve(length);
-        attribute_info.info.resize(length);
-        if (length != input_stream->read(attribute_info.info.data(), length)) {
-            throw sese::Exception("failed to parse attribute");
+        if (attribute_info.name == "LineNumberTable") {
+            uint16_t line_number_info_count;
+            ASSERT_READ(line_number_info_count)
+            line_number_info_count = FromBigEndian16(line_number_info_count);
+            for (int k = 0; k < line_number_info_count; ++k) {
+                LineNumberInfo line_number_info{};
+                ASSERT_READ(line_number_info.start_pc)
+                line_number_info.start_pc = FromBigEndian16(line_number_info.start_pc);
+                ASSERT_READ(line_number_info.line_number)
+                line_number_info.line_number = FromBigEndian16(line_number_info.line_number);
+                code_info->line_infos.emplace_back(line_number_info);
+            }
+        } else {
+            attribute_info.info.reserve(length);
+            attribute_info.info.resize(length);
+            if (length != input_stream->read(attribute_info.info.data(), length)) {
+                throw sese::Exception("failed to parse attribute");
+            }
+            code_info->attribute_infos.emplace_back(std::move(attribute_info));
         }
-        code_info->attribute_infos.emplace_back(std::move(attribute_info));
     }
 }
