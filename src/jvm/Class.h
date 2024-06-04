@@ -109,7 +109,22 @@ namespace jvm {
             // uint16_t name_index{};
             std::string name{};
             // uint32_t length{};
-            std::vector<uint8_t> info;
+            std::vector<uint8_t> info{};
+        };
+
+        struct ExceptionInfo {
+            uint16_t from{};
+            uint16_t to{};
+            uint16_t target{};
+            uint16_t type{};
+        };
+
+        struct CodeInfo {
+            uint16_t max_stack;
+            uint16_t max_locals;
+            std::vector<uint8_t> code;
+            std::vector<ExceptionInfo> exception_infos;
+            std::vector<AttributeInfo> attribute_infos;
         };
 
         struct FieldInfo : AccessFlags {
@@ -131,6 +146,8 @@ namespace jvm {
             std::vector<TypeInfo> argsType;
             // uint16_t attributes_count;
             std::vector<AttributeInfo> attribute_infos{};
+            std::unique_ptr<CodeInfo> code_info;
+            std::vector<ExceptionInfo> exception_infos;
         };
 
         explicit Class(sese::io::InputStream *input_stream);
@@ -164,20 +181,19 @@ namespace jvm {
 
         void parseAttributes(sese::io::InputStream *input_stream);
 
+        void parseAttributeCode(sese::io::InputStream *input_stream, CodeInfo *code_info) const;
+
         uint32_t magic{};
         uint16_t minor{}, major{};
-        // uint16_t constant_pool_count{};
         std::vector<std::unique_ptr<ConstantInfo> > constant_infos;
         uint16_t access_flags{};
         uint16_t this_class{};
         uint16_t super_class{};
-        // uint16_t interface_count{};
         std::vector<uint16_t> interfaces{};
-        // uint16_t fields_count{};
         std::vector<FieldInfo> field_infos{};
-        // uint16_t methods_count{};
         std::vector<MethodInfo> method_infos{};
-        // uint16_t attributes_count{};
         std::vector<AttributeInfo> attribute_infos{};
+        std::vector<ExceptionInfo> exception_infos{};
+        std::string source_file{};
     };
 }

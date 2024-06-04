@@ -9,7 +9,7 @@
 #define SESE_DEBUG(...)
 
 inline std::string getUtf8(const std::vector<std::unique_ptr<jvm::Class::ConstantInfo> > &constants, uint16_t index) {
-    auto string_ptr = &constants[index - 1];
+    auto string_ptr = &constants[index];
     auto string_info = dynamic_cast<jvm::Class::ConstantInfo_Utf8 *>(string_ptr->get());
     return string_info->bytes;
 }
@@ -47,7 +47,9 @@ void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
     ASSERT_READ(constant_pool_count)
     constant_pool_count = FromBigEndian16(constant_pool_count);
     SESE_DEBUG("constant pool count %d", constant_pool_count);
+    constant_infos.reserve(constant_pool_count);
 
+    constant_infos.emplace_back(std::make_unique<ConstantInfo>());
     for (int i = 1; i < constant_pool_count; i++) {
         int8_t tag;
         ASSERT_READ(tag)
@@ -257,14 +259,13 @@ void jvm::Class::parseFields(sese::io::InputStream *input_stream) {
             ASSERT_READ(length)
             length = FromBigEndian32(length);
             attribute_info.info.reserve(length);
-            for (int k = 0; k < length; k++) {
-                uint8_t byte;
-                ASSERT_READ(byte)
-                attribute_info.info.push_back(byte);
+            attribute_info.info.reserve(length);
+            if (length != input_stream->read(attribute_info.info.data(), length)) {
+                throw sese::Exception("failed to parse attribute_info.info");
             }
             field_info.attribute_infos.push_back(attribute_info);
         }
-        field_infos.push_back(field_info);
+        field_infos.push_back(std::move(field_info));
     }
 }
 
@@ -313,17 +314,41 @@ void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
             ASSERT_READ(name_index)
             name_index = FromBigEndian16(name_index);
             attribute_info.name = getUtf8(constant_infos, name_index);
-            ASSERT_READ(length)
-            length = FromBigEndian32(length);
-            attribute_info.info.reserve(length);
-            for (int k = 0; k < length; k++) {
-                uint8_t byte;
-                ASSERT_READ(byte)
-                attribute_info.info.push_back(byte);
+            if (attribute_info.name == "Code") {
+                ASSERT_READ(length)
+                length = FromBigEndian32(length);
+                method_info.code_info = std::make_unique<CodeInfo>();
+                parseAttributeCode(input_stream, method_info.code_info.get());
+            } else if (attribute_info.name == "Exceptions") {
+                uint16_t exceptions_count;
+                ASSERT_READ(length)
+                length = FromBigEndian32(length);
+                ASSERT_READ(exceptions_count)
+                exceptions_count = FromBigEndian16(exceptions_count);
+                for (int k = 0; k < exceptions_count; ++k) {
+                    ExceptionInfo exception_info;
+                    // ASSERT_READ(exception_info.from)
+                    // exception_info.from = FromBigEndian16(exception_info.from);
+                    // ASSERT_READ(exception_info.to)
+                    // exception_info.to = FromBigEndian16(exception_info.to);
+                    // ASSERT_READ(exception_info.target)
+                    // exception_info.target = FromBigEndian16(exception_info.target);
+                    ASSERT_READ(exception_info.type)
+                    exception_info.type = FromBigEndian16(exception_info.type);
+                    method_info.exception_infos.emplace_back(exception_info);
+                }
+            } else {
+                ASSERT_READ(length)
+                length = FromBigEndian32(length);
+                attribute_info.info.reserve(length);
+                attribute_info.info.resize(length);
+                if (length != input_stream->read(attribute_info.info.data(), length)) {
+                    throw sese::Exception("failed to parse attribute_info.info");
+                }
+                method_info.attribute_infos.push_back(attribute_info);
             }
-            method_info.attribute_infos.push_back(attribute_info);
         }
-        method_infos.push_back(method_info);
+        method_infos.push_back(std::move(method_info));
     }
 }
 
@@ -340,14 +365,70 @@ void jvm::Class::parseAttributes(sese::io::InputStream *input_stream) {
         ASSERT_READ(name_index)
         name_index = FromBigEndian16(name_index);
         attribute_info.name = getUtf8(constant_infos, name_index);
+        if (attribute_info.name == "SourceFile") {
+            ASSERT_READ(length)
+            length = FromBigEndian32(length);
+            ASSERT_READ(name_index)
+            name_index = FromBigEndian16(name_index);
+            source_file = getUtf8(constant_infos, name_index);
+        } else {
+            ASSERT_READ(length)
+            length = FromBigEndian32(length);
+            attribute_info.info.reserve(length);
+            attribute_info.info.resize(length);
+            if (length != input_stream->read(attribute_info.info.data(), length)) {
+                throw sese::Exception("failed to parse attribute_info.info");
+            }
+            attribute_infos.push_back(attribute_info);
+        }
+    }
+}
+
+void jvm::Class::parseAttributeCode(sese::io::InputStream *input_stream, CodeInfo *code_info) const {
+    uint32_t code_length;
+    uint16_t exceptions_count;
+    uint16_t attributes_count;
+    ASSERT_READ(code_info->max_stack)
+    code_info->max_stack = FromBigEndian16(code_info->max_stack);
+    ASSERT_READ(code_info->max_locals)
+    code_info->max_locals = FromBigEndian16(code_info->max_locals);
+    ASSERT_READ(code_length)
+    code_length = FromBigEndian32(code_length);
+    code_info->code.reserve(code_length);
+    code_info->code.resize(code_length);
+    if (code_length != input_stream->read(code_info->code.data(), code_length)) {
+        throw sese::Exception("failed to read code");
+    }
+    ASSERT_READ(exceptions_count)
+    exceptions_count = FromBigEndian16(exceptions_count);
+    for (int k = 0; k < exceptions_count; ++k) {
+        ExceptionInfo exception_info;
+        ASSERT_READ(exception_info.from)
+        exception_info.from = FromBigEndian16(exception_info.from);
+        ASSERT_READ(exception_info.to)
+        exception_info.to = FromBigEndian16(exception_info.to);
+        ASSERT_READ(exception_info.target)
+        exception_info.target = FromBigEndian16(exception_info.target);
+        ASSERT_READ(exception_info.type)
+        exception_info.type = FromBigEndian16(exception_info.type);
+        code_info->exception_infos.emplace_back(exception_info);
+    }
+    ASSERT_READ(attributes_count)
+    attributes_count = FromBigEndian16(attributes_count);
+    for (int j = 0; j < attributes_count; ++j) {
+        AttributeInfo attribute_info;
+        uint16_t name_index;
+        uint32_t length;
+        ASSERT_READ(name_index)
+        name_index = FromBigEndian16(name_index);
+        attribute_info.name = getUtf8(constant_infos, name_index);
         ASSERT_READ(length)
         length = FromBigEndian32(length);
         attribute_info.info.reserve(length);
-        for (int k = 0; k < length; k++) {
-            uint8_t byte;
-            ASSERT_READ(byte)
-            attribute_info.info.push_back(byte);
+        attribute_info.info.resize(length);
+        if (length != input_stream->read(attribute_info.info.data(), length)) {
+            throw sese::Exception("failed to parse attribute");
         }
-        attribute_infos.push_back(attribute_info);
+        code_info->attribute_infos.emplace_back(std::move(attribute_info));
     }
 }
