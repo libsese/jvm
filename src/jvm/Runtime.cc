@@ -3,6 +3,7 @@
 
 #include <sese/Log.h>
 #include <sese/util/Endian.h>
+#include <sese/util/Exception.h>
 
 void jvm::Runtime::regClass(const std::shared_ptr<Class> &class_) {
     classes[class_->getThisName()] = class_;
@@ -135,8 +136,8 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 break;
             }
             default:
-                SESE_WARN("Unsupported opcode: %d", op);
-                goto end;
+                SESE_ERROR("opcode %d", op);
+                throw sese::Exception("Unsupported opcode");
         }
     }
 end:

@@ -4,6 +4,7 @@
 
 #include <jvm/ClassLoader.h>
 #include <jvm/Runtime.h>
+#include <sese/util/Exception.h>
 
 int main(int argc, char **argv) {
     sese::initCore(argc, argv);
@@ -23,19 +24,23 @@ int main(int argc, char **argv) {
     }
     SESE_INFO("mode: %s", mode.c_str());
 
-    auto cl = jvm::ClassLoader::loadFromFile(class_path);
-    if (mode == "run") {
-        jvm::Runtime runtime;
-        runtime.regClass(cl);
-        if (!runtime.hasMain()) {
-            SESE_ERROR("cannot found main method in class %s", cl->getThisName().c_str());
-            return -1;
+    try {
+        auto cl = jvm::ClassLoader::loadFromFile(class_path);
+        if (mode == "run") {
+            jvm::Runtime runtime;
+            runtime.regClass(cl);
+            if (!runtime.hasMain()) {
+                SESE_ERROR("cannot found main method in class %s", cl->getThisName().c_str());
+                return -1;
+            }
+            runtime.run();
+        } else if (mode == "print") {
+            cl->printMethods();
+            cl->printFields();
+            cl->printAttributes();
         }
-        runtime.run();
-    } else if (mode == "print") {
-        cl->printMethods();
-        cl->printFields();
-        cl->printAttributes();
+    } catch (sese::Exception &e) {
+        e.printStacktrace();
     }
     return 0;
 }
