@@ -28,9 +28,6 @@ namespace jvm {
 
         void run(Info &prev, Info &current);
 
-        uint16_t pc = 0;
-        std::stack<StackFrame> stacks;
-
         std::unordered_map<std::string, std::shared_ptr<Class> > classes;
     };
 }
