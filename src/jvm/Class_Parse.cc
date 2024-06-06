@@ -286,6 +286,7 @@ void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
         ASSERT_READ(descriptor_index)
         descriptor_index = FromBigEndian16(descriptor_index);
         auto descriptor = getUtf8(constant_infos, descriptor_index);
+        method_info.descriptor = descriptor;
         descriptor = descriptor.substr(1, descriptor.length() - 1);
         auto pos1 = descriptor.find('(');
         auto pos2 = descriptor.find(')');

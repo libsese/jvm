@@ -11,3 +11,10 @@ TEST(TestRuntime, FindMain) {
     runtime.regClass(class_);
     EXPECT_TRUE(runtime.hasMain());
 }
+
+TEST(TestRuntime, Run) {
+    auto class_ = jvm::ClassLoader::loadFromFile(PATH_TO_WORLD_CLASS);
+    auto runtime = jvm::Runtime();
+    runtime.regClass(class_);
+    runtime.run();
+}

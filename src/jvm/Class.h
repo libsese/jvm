@@ -149,6 +149,7 @@ namespace jvm {
 
         struct MethodInfo : AccessFlags {
             std::string name{};
+            std::string descriptor{};
             TypeInfo return_type;
             std::vector<TypeInfo> args_type;
             std::vector<AttributeInfo> attribute_infos{};
