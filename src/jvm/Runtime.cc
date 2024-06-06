@@ -1,18 +1,24 @@
 #include "Runtime.h"
 
-void jvm::Runtime::moveArgs(std::vector<std::string> &args) {
-    this->args = std::move(args);
+void jvm::Runtime::regClass(const std::shared_ptr<Class> &class_) {
+    classes[class_->getThisName()] = class_;
+    if (main.class_ == nullptr) {
+        for (int i = 0; i < class_->method_infos.size(); ++i) {
+            auto &&method = class_->method_infos[i];
+            if (method.name == "main" &&
+                method.args_type.size() == 1 &&
+                method.isStatic() &&
+                method.isPublic()) {
+                main.class_ = class_;
+                main.methodIndex = i;
+            }
+        }
+    }
 }
 
-void jvm::Runtime::regClass(std::unique_ptr<Class> class_) {
-    classes[class_->getThisName()] = std::move(class_);
+bool jvm::Runtime::hasMain() const {
+    return main.class_ != nullptr;
 }
 
 void jvm::Runtime::run() {
 }
-
-void jvm::Runtime::findMain() {
-    for (auto &&[_, class_]: classes) {
-    }
-}
-

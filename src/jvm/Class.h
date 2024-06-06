@@ -8,8 +8,12 @@
 #include <vector>
 
 namespace jvm {
+    class Runtime;
+
     class Class : public AccessFlags {
     public:
+        friend class Runtime;
+
         enum Constant : int8_t {
             utf8_info = 1,
             integer_info = 3,

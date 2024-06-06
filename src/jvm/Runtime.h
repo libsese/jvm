@@ -6,16 +6,18 @@
 namespace jvm {
     class Runtime {
     public:
-        void moveArgs(std::vector<std::string> &args);
+        void regClass(const std::shared_ptr<Class> &class_);
 
-        void regClass(std::unique_ptr<Class> class_);
+        [[nodiscard]] bool hasMain() const;
 
         void run();
 
     private:
-        void findMain();
+        struct MainInfo {
+            size_t methodIndex = -1;
+            std::shared_ptr<Class> class_{};
+        } main;
 
-        std::vector<std::string> args;
-        std::unordered_map<std::string, std::unique_ptr<Class> > classes;
+        std::unordered_map<std::string, std::shared_ptr<Class> > classes;
     };
 }
