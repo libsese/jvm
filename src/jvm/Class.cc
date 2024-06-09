@@ -40,7 +40,7 @@ void jvm::Class::printMethods() const {
     printLine();
     SESE_INFO("%s's Method:", getThisName().c_str());
     sese::text::StringBuilder builder;
-    for (auto &&method: method_infos) {
+    for (auto &&[_,method]: method_infos) {
         auto name = method.name == "<init>" ? getThisName() : method.name;
         if (method.isPublic()) {
             builder.append("public ");

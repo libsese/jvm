@@ -341,7 +341,7 @@ void jvm::Class::parseMethods(sese::io::InputStream *input_stream) {
                 method_info.attribute_infos.push_back(attribute_info);
             }
         }
-        method_infos.push_back(std::move(method_info));
+        method_infos[method_info.name + method_info.descriptor] = std::move(method_info);
     }
 }
 

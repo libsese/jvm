@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <jvm/AccessFlags.h>
 #include <jvm/Type.h>
 
@@ -200,7 +201,7 @@ namespace jvm {
         uint16_t super_class{};
         std::vector<uint16_t> interfaces{};
         std::vector<FieldInfo> field_infos{};
-        std::vector<MethodInfo> method_infos{};
+        std::map<std::string, MethodInfo> method_infos{};
         std::vector<AttributeInfo> attribute_infos{};
         std::vector<ExceptionInfo> exception_infos{};
         std::string source_file{};

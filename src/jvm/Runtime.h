@@ -20,13 +20,21 @@ namespace jvm {
         void run();
 
     private:
+        constexpr static auto main_signature = "main([Ljava/lang/String;)V";
+
         struct Info {
             std::shared_ptr<Class> class_{};
-            size_t methodIndex = -1;
+            std::map<std::string, Class::MethodInfo>::iterator method;
             StackFrame data;
         } main;
 
         void run(Info &prev, Info &current);
+
+        static struct MethodRefResult {
+            std::string class_name;
+            std::string method_id;
+        } getMethodRefResult(const std::shared_ptr<Class> &class_, uint16_t index);
+
 
         std::unordered_map<std::string, std::shared_ptr<Class> > classes;
     };
