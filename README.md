@@ -32,6 +32,8 @@ e.g.
 <div align="center">
 <img src="./static/image/print_mode.png" alt="">
 <p>print mode</p>
+<img src="./static/image/prime_calculator.png" alt="">
+<p>calculate the 50th prime number</p>
 <img src="./static/image/unsupported_opcode.png" alt="">
 <p>unsupported opcode</p>
 </div>
