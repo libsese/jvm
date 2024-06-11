@@ -34,6 +34,8 @@ e.g.
 <p>print mode</p>
 <img src="./static/image/prime_calculator.png" alt="">
 <p>calculate the 50th prime number</p>
+<img src="./static/image/pi_calculator.png" alt="">
+<p>calculate the approximate value of the pi</p>
 <img src="./static/image/unsupported_opcode.png" alt="">
 <p>unsupported opcode</p>
 </div>
