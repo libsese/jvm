@@ -30,10 +30,12 @@ namespace jvm {
 
         void run(Info &prev, Info &current);
 
-        static struct MethodRefResult {
+        
+        struct MethodRefResult {
             std::string class_name;
             std::string method_id;
-        } getMethodRefResult(const std::shared_ptr<Class> &class_, uint16_t index);
+        };
+        static MethodRefResult getMethodRefResult(const std::shared_ptr<Class> &class_, uint16_t index);
 
 
         std::unordered_map<std::string, std::shared_ptr<Class> > classes;

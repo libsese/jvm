@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28.1)
+cmake_minimum_required(VERSION 3.13)
 
 project(jvm)
 
@@ -7,6 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
     add_compile_options(/utf-8)
+    if (VCPKG_TARGET_TRIPLET STREQUAL "x64-windows-static")
+        set(CMAKE_CXX_FLAGS_DEBUG /MTd)
+        set(CMAKE_CXX_FLAGS_MINSIZEREL /MT)
+        set(CMAKE_CXX_FLAGS_RELEASE /MT)
+        set(CMAKE_CXX_FLAGS_RELWITHDEBUGINFO /MT)
+    endif ()
 endif ()
 
 include_directories(src)

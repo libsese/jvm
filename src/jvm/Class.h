@@ -61,7 +61,7 @@ namespace jvm {
                 tag = float_info;
             }
 
-            float_t bytes{};
+            float bytes{};
         };
 
         struct ConstantInfo_Long final : ConstantInfo {
@@ -77,7 +77,7 @@ namespace jvm {
                 tag = double_info;
             }
 
-            double_t bytes{};
+            double bytes{};
         };
 
         struct ConstantInfo_Class final : ConstantInfo {

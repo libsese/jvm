@@ -5,6 +5,8 @@
 #include <sese/util/Endian.h>
 #include <sese/util/Exception.h>
 
+#include <cmath>
+
 void jvm::Runtime::regClass(const std::shared_ptr<Class> &class_) {
     classes[class_->getThisName()] = class_;
     if (main.class_ == nullptr) {

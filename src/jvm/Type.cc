@@ -4,11 +4,12 @@
 #include <sese/text/StringBuilder.h>
 
 #include <cassert>
+#include <algorithm>
 
 void jvm::TypeInfo::parse(std::string raw_name) {
     assert(!raw_name.empty());
     // 计算 raw_name 中 [ 的个数
-    is_array = std::count(raw_name.begin(), raw_name.end(), '[');
+    is_array = static_cast<uint8_t>(std::count(raw_name.begin(), raw_name.end(), '['));
     if (is_array) {
         raw_name = raw_name.substr(is_array, raw_name.length() - is_array);
     }
