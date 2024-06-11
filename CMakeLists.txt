@@ -51,7 +51,9 @@ add_custom_command(
         COMMAND javac "${CMAKE_SOURCE_DIR}/src/test/resource/Hello.java"
         COMMAND javac "${CMAKE_SOURCE_DIR}/src/test/resource/World.java"
         COMMAND javac "${CMAKE_SOURCE_DIR}/src/test/resource/PrimeCalculator.java"
+        COMMAND javac "${CMAKE_SOURCE_DIR}/src/test/resource/PiCalculator.java"
 )
 target_compile_definitions(test PRIVATE "PATH_TO_HELLO_CLASS=\"${CMAKE_SOURCE_DIR}/src/test/resource/Hello.class\"")
 target_compile_definitions(test PRIVATE "PATH_TO_WORLD_CLASS=\"${CMAKE_SOURCE_DIR}/src/test/resource/World.class\"")
 target_compile_definitions(test PRIVATE "PATH_TO_PRIME_CALCULATOR_CLASS=\"${CMAKE_SOURCE_DIR}/src/test/resource/PrimeCalculator.class\"")
+target_compile_definitions(test PRIVATE "PATH_TO_PI_CALCULATOR_CLASS=\"${CMAKE_SOURCE_DIR}/src/test/resource/PiCalculator.class\"")

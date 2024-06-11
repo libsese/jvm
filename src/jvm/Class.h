@@ -37,77 +37,141 @@ namespace jvm {
         struct ConstantInfo {
             virtual ~ConstantInfo() = default;
 
-            uint8_t tag;
+            uint8_t tag{};
         };
 
         struct ConstantInfo_Utf8 final : ConstantInfo {
+            ConstantInfo_Utf8() {
+                tag = utf8_info;
+            }
+
             std::string bytes;
         };
 
         struct ConstantInfo_Integer final : ConstantInfo {
-            int32_t bytes;
+            ConstantInfo_Integer() {
+                tag = integer_info;
+            }
+
+            int32_t bytes{};
         };
 
         struct ConstantInfo_Float final : ConstantInfo {
-            float_t bytes;
+            ConstantInfo_Float() {
+                tag = float_info;
+            }
+
+            float_t bytes{};
         };
 
         struct ConstantInfo_Long final : ConstantInfo {
-            int64_t bytes;
+            ConstantInfo_Long() {
+                tag = long_info;
+            }
+
+            int64_t bytes{};
         };
 
         struct ConstantInfo_Double final : ConstantInfo {
-            double_t bytes;
+            ConstantInfo_Double() {
+                tag = double_info;
+            }
+
+            double_t bytes{};
         };
 
         struct ConstantInfo_Class final : ConstantInfo {
-            uint16_t index;
+            ConstantInfo_Class() {
+                tag = class_info;
+            }
+
+            uint16_t index{};
         };
 
         struct ConstantInfo_String final : ConstantInfo {
-            uint16_t index;
+            ConstantInfo_String() {
+                tag = string_info;
+            }
+
+            uint16_t index{};
         };
 
         struct ConstantInfo_FieldRef final : ConstantInfo {
-            uint16_t class_info_index;
-            uint16_t name_and_type_index;
+            ConstantInfo_FieldRef() {
+                tag = field_ref_info;
+            }
+
+            uint16_t class_info_index{};
+            uint16_t name_and_type_index{};
         };
 
         struct ConstantInfo_MethodRef final : ConstantInfo {
-            uint16_t class_info_index;
-            uint16_t name_and_type_index;
+            ConstantInfo_MethodRef() {
+                tag = method_ref_info;
+            }
+
+            uint16_t class_info_index{};
+            uint16_t name_and_type_index{};
         };
 
         struct ConstantInfo_InterfaceMethodRef final : ConstantInfo {
-            uint16_t class_info_index;
-            uint16_t name_and_type_index;
+            ConstantInfo_InterfaceMethodRef() {
+                tag = interface_method_ref_info;
+            }
+
+            uint16_t class_info_index{};
+            uint16_t name_and_type_index{};
         };
 
         struct ConstantInfo_NameAndType final : ConstantInfo {
-            uint16_t name_index;
-            uint16_t descriptor_index;
+            ConstantInfo_NameAndType() {
+                tag = name_and_type_info;
+            }
+
+            uint16_t name_index{};
+            uint16_t descriptor_index{};
         };
 
         struct ConstantInfo_MethodHandle final : ConstantInfo {
-            uint8_t reference_kind;
-            uint16_t reference_index;
+            ConstantInfo_MethodHandle() {
+                tag = method_handle_info;
+            }
+
+            uint8_t reference_kind{};
+            uint16_t reference_index{};
         };
 
         struct ConstantInfo_MethodType final : ConstantInfo {
-            uint16_t descriptor_index;
+            ConstantInfo_MethodType() {
+                tag = method_type_info;
+            }
+
+            uint16_t descriptor_index{};
         };
 
         struct ConstantInfo_InvokeDynamic final : ConstantInfo {
-            uint16_t bootstrap_method_attr_index;
-            uint16_t name_and_type_index;
+            ConstantInfo_InvokeDynamic() {
+                tag = invoke_dynamic_info;
+            }
+
+            uint16_t bootstrap_method_attr_index{};
+            uint16_t name_and_type_index{};
         };
 
         struct ConstantInfo_Module final : ConstantInfo {
-            uint16_t name_index;
+            ConstantInfo_Module() {
+                tag = module_info;
+            }
+
+            uint16_t name_index{};
         };
 
         struct ConstantInfo_Package final : ConstantInfo {
-            uint16_t name_index;
+            ConstantInfo_Package() {
+                tag = package_info;
+            }
+
+            uint16_t name_index{};
         };
 
         struct AttributeInfo {

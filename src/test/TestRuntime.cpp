@@ -33,3 +33,14 @@ TEST(TestRuntime, Run_PrimeCalculator) {
         ex.printStacktrace();
     }
 }
+
+TEST(TestRuntime, Run_PiCalculator) {
+    auto class_ = jvm::ClassLoader::loadFromFile(PATH_TO_PI_CALCULATOR_CLASS);
+    auto runtime = jvm::Runtime();
+    runtime.regClass(class_);
+    try {
+        runtime.run();
+    } catch (sese::Exception &ex) {
+        ex.printStacktrace();
+    }
+}

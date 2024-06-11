@@ -181,7 +181,68 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 pc += 3;
                 break;
             }
-            // todo ldc
+            case ldc: {
+                uint8_t index = code->code[pc + 1];
+                auto i = current.class_->constant_infos[index]->tag;
+                if (i == Class::integer_info) {
+                    auto wrapper =
+                            dynamic_cast<Class::ConstantInfo_Integer *>(current.class_->constant_infos[index].get());
+                    current.data.stacks.emplace(wrapper->bytes);
+                } else if (i == Class::float_info) {
+                    auto wrapper =
+                            dynamic_cast<Class::ConstantInfo_Float *>(current.class_->constant_infos[index].get());
+                    current.data.stacks.emplace(wrapper->bytes);
+                } else if (i == Class::string_info) {
+                    // todo 字符串暂时未处理
+                    throw sese::Exception("ldc received arguments of an illegal type");
+                } else {
+                    throw sese::Exception("ldc received arguments of an illegal type");
+                }
+                pc += 2;
+                break;
+            }
+            case ldc_w: {
+                uint16_t index;
+                memcpy(&index, &code->code[pc + 1], 2);
+                index = FromBigEndian16(index);
+                auto i = current.class_->constant_infos[index]->tag;
+                if (i == Class::integer_info) {
+                    auto wrapper =
+                            dynamic_cast<Class::ConstantInfo_Integer *>(current.class_->constant_infos[index].get());
+                    current.data.stacks.emplace(wrapper->bytes);
+                } else if (i == Class::float_info) {
+                    auto wrapper =
+                            dynamic_cast<Class::ConstantInfo_Float *>(current.class_->constant_infos[index].get());
+                    current.data.stacks.emplace(wrapper->bytes);
+                } else if (i == Class::string_info) {
+                    // todo 字符串暂时未处理
+                    throw sese::Exception("ldc received arguments of an illegal type");
+                } else {
+                    throw sese::Exception("ldc received arguments of an illegal type");
+                }
+                pc += 3;
+                break;
+            }
+            case ldc2_w: {
+                uint16_t index;
+                memcpy(&index, &code->code[pc + 1], 2);
+                index = FromBigEndian16(index);
+                auto i = current.class_->constant_infos[index]->tag;
+                if (i == Class::long_info) {
+                    auto wrapper =
+                            dynamic_cast<Class::ConstantInfo_Long *>(current.class_->constant_infos[index].get());
+                    current.data.stacks.emplace(static_cast<int>(wrapper->bytes));
+                } else if (i == Class::double_info) {
+                    auto wrapper =
+                            dynamic_cast<Class::ConstantInfo_Double *>(current.class_->constant_infos[index].get());
+                    current.data.stacks.emplace(wrapper->bytes);
+                } else {
+                    throw sese::Exception("ldc_w received arguments of an illegal type");
+                }
+                pc += 3;
+                break;
+                break;
+            }
             case iload: {
                 uint8_t index = code->code[pc + 1];
                 current.data.stacks.emplace(current.data.locals[index].getInt());
@@ -390,6 +451,14 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 break;
             }
             // todo shl 相关指令暂时未实现，因为没有区分 int/long 和 float/double 类型
+            case i2d: {
+                auto i = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                auto d = static_cast<double>(i);
+                current.data.stacks.emplace(d);
+                pc += 1;
+                break;
+            }
             case iinc: {
                 uint8_t index, ii;
                 memcpy(&index, &code->code[pc + 1], 1);
@@ -635,7 +704,7 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 current.data.stacks.pop();
                 prev.data.stacks.emplace(i);
                 pc += 1;
-                SESE_INFO("exit %s.%s with return value %f",
+                SESE_INFO("exit %s.%s with return value %le",
                           current.class_->getThisName().c_str(),
                           current.method->first.c_str(),
                           i);

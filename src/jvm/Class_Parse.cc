@@ -73,11 +73,11 @@ void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
             item->bytes = bytes;
             constant_infos.emplace_back(std::move(item));
         } else if (tag == float_info) {
-            float_t bytes;
+            int32_t bytes;
             ASSERT_READ(bytes)
-            // bytes = FromBigEndian32(bytes);
+            bytes = FromBigEndian32(bytes);
             auto item = std::make_unique<ConstantInfo_Float>();
-            item->bytes = bytes;
+            memcpy(&item->bytes, &bytes, sizeof(bytes));
             constant_infos.emplace_back(std::move(item));
         } else if (tag == long_info) {
             int64_t bytes;
@@ -90,11 +90,11 @@ void jvm::Class::parseConstantPool(sese::io::InputStream *input_stream) {
             constant_infos.emplace_back(std::make_unique<ConstantInfo>());
             ++i;
         } else if (tag == double_info) {
-            double bytes;
+            int64_t bytes;
             ASSERT_READ(bytes)
-            // bytes = FromBigEndian64(bytes);
+            bytes = FromBigEndian64(bytes);
             auto item = std::make_unique<ConstantInfo_Double>();
-            item->bytes = bytes;
+            memcpy(&item->bytes, &bytes, sizeof(bytes));
             constant_infos.emplace_back(std::move(item));
 
             constant_infos.emplace_back(std::make_unique<ConstantInfo>());
