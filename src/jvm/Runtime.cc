@@ -44,76 +44,232 @@ void jvm::Runtime::run() {
     run(empty, main);
 }
 
+#pragma region 字节码逻辑实现
+
+#define lconst_N(i) \
+    case lconst_##i: { \
+        current.data.stacks.emplace(i); \
+        pc += 1; \
+        break; \
+    }
+
+#define iconst_N(i) \
+    case iconst_##i: { \
+        current.data.stacks.emplace(i); \
+        pc += 1; \
+        break; \
+    }
+
+#define fconst_N(i) \
+    case fconst_##i: { \
+        current.data.stacks.emplace(i##.0);; \
+        pc += 1; \
+        break; \
+    }
+
+#define dconst_N(i) \
+    case dconst_##i: { \
+        current.data.stacks.emplace(i##.0);; \
+        pc += 1; \
+        break; \
+    }
+
+#define iload_N(i) \
+    case iload_##i: { \
+        current.data.stacks.emplace(current.data.locals[i].getInt()); \
+        pc += 1; \
+        break; \
+    }
+
+#define lload_N(i) \
+    case lload_##i: { \
+        current.data.stacks.emplace(current.data.locals[i].getInt()); \
+        pc += 1; \
+        break; \
+    }
+
+#define fload_N(i) \
+    case fload_##i: { \
+        current.data.stacks.emplace(current.data.locals[i].getDouble()); \
+        pc += 1; \
+        break; \
+    }
+
+#define dload_N(i) \
+    case dload_##i: { \
+        current.data.stacks.emplace(current.data.locals[i].getDouble()); \
+        pc += 1; \
+        break; \
+    }
+
+#define istore_N(i) \
+    case istore_##i: { \
+        current.data.locals[i] = sese::Value(current.data.stacks.top().getInt()); \
+        current.data.stacks.pop(); \
+        pc += 1; \
+        break; \
+    }
+
+#define lstore_N(i) \
+    case lstore_##i: { \
+        current.data.locals[i] = sese::Value(current.data.stacks.top().getInt()); \
+        current.data.stacks.pop(); \
+        pc += 1; \
+        break; \
+    }
+
+#define fstore_N(i) \
+    case fstore_##i: { \
+        current.data.locals[i] = sese::Value(current.data.stacks.top().getDouble()); \
+        current.data.stacks.pop(); \
+        pc += 1; \
+        break; \
+    }
+
+#define dstore_N(i) \
+    case dstore_##i: { \
+        current.data.locals[i] = sese::Value(current.data.stacks.top().getDouble()); \
+        current.data.stacks.pop(); \
+        pc += 1; \
+        break; \
+    }
+
 void jvm::Runtime::run(Info &prev, Info &current) {
-    SESE_INFO("call %s.%s", current.class_->getThisName().c_str(), current.method->first.c_str());
+    // SESE_INFO("call %s.%s", current.class_->getThisName().c_str(), current.method->first.c_str());
     auto &&code = current.method->second.code_info;
     for (size_t pc = 0; pc < code->code.size();) {
         auto op = static_cast<Opcode>(code->code[pc]);
         switch (op) {
-            case iconst_0: {
-                current.data.stacks.emplace(0);
+            case nop: {
                 pc += 1;
                 break;
             }
-            case iconst_1: {
-                current.data.stacks.emplace(1);
+            case aconst_null: {
+                current.data.stacks.emplace();
                 pc += 1;
                 break;
             }
-            case iconst_2: {
-                current.data.stacks.emplace(2);
+            case iconst_m1: {
+                current.data.stacks.emplace(-1);
                 pc += 1;
                 break;
             }
-            case iconst_3: {
-                current.data.stacks.emplace(3);
-                pc += 1;
-                break;
-            }
+            iconst_N(0)
+            iconst_N(1)
+            iconst_N(2)
+            iconst_N(3)
+            iconst_N(4)
+            iconst_N(5)
+            lconst_N(0)
+            lconst_N(1)
+            fconst_N(0)
+            fconst_N(1)
+            fconst_N(2)
+            dconst_N(0)
+            dconst_N(1)
             case bipush: {
                 uint8_t byte = code->code[pc + 1];
                 current.data.stacks.emplace(byte);
                 pc += 2;
                 break;
             }
-            case iload_0: {
-                current.data.stacks.emplace(current.data.locals[0].getInt());
-                pc += 1;
+            case sipush: {
+                uint16_t bytes;
+                memcpy(&bytes, &code->code[pc + 1], 2);
+                bytes = FromBigEndian16(bytes);
+                current.data.stacks.emplace(bytes);
+                pc += 3;
                 break;
             }
-            case iload_1: {
-                current.data.stacks.emplace(current.data.locals[1].getInt());
-                pc += 1;
+            // todo ldc
+            case iload: {
+                uint8_t index = code->code[pc + 1];
+                current.data.stacks.emplace(current.data.locals[index].getInt());
+                pc += 2;
                 break;
             }
-            case iload_2: {
-                current.data.stacks.emplace(current.data.locals[2].getInt());
-                pc += 1;
+            iload_N(0)
+            iload_N(1)
+            iload_N(2)
+            iload_N(3)
+            case lload: {
+                uint8_t index = code->code[pc + 1];
+                current.data.stacks.emplace(current.data.locals[index].getInt());
+                pc += 2;
                 break;
             }
-            case iload_3: {
-                current.data.stacks.emplace(current.data.locals[3].getInt());
-                pc += 1;
+            lload_N(0)
+            lload_N(1)
+            lload_N(2)
+            lload_N(3)
+            case fload: {
+                uint8_t index = code->code[pc + 1];
+                current.data.stacks.emplace(current.data.locals[index].getDouble());
+                pc += 2;
                 break;
             }
-            case istore_1: {
-                current.data.locals[1] = sese::Value(current.data.stacks.top().getInt());
+            fload_N(0)
+            fload_N(1)
+            fload_N(2)
+            fload_N(3)
+            case dload: {
+                uint8_t index = code->code[pc + 1];
+                current.data.stacks.emplace(current.data.locals[index].getDouble());
+                pc += 2;
+                break;
+            }
+            dload_N(0)
+            dload_N(1)
+            dload_N(2)
+            dload_N(3)
+            // todo aload
+            case istore: {
+                uint8_t index = code->code[pc + 1];
+                current.data.locals[index] = sese::Value(current.data.stacks.top().getInt());
                 current.data.stacks.pop();
-                pc += 1;
+                pc += 2;
                 break;
             }
-            case istore_2: {
-                current.data.locals[2] = sese::Value(current.data.stacks.top().getInt());
+            istore_N(0)
+            istore_N(1)
+            istore_N(2)
+            istore_N(3)
+            case lstore: {
+                uint8_t index = code->code[pc + 1];
+                current.data.locals[index] = sese::Value(current.data.stacks.top().getInt());
                 current.data.stacks.pop();
-                pc += 1;
+                pc += 2;
                 break;
             }
-            case istore_3: {
-                current.data.locals[3] = sese::Value(current.data.stacks.top().getInt());
+            lstore_N(0)
+            lstore_N(1)
+            lstore_N(2)
+            lstore_N(3)
+            case fstore: {
+                uint8_t index = code->code[pc + 1];
+                current.data.locals[index] = sese::Value(current.data.stacks.top().getDouble());
                 current.data.stacks.pop();
-                pc += 1;
+                pc += 2;
                 break;
             }
+            fstore_N(0)
+            fstore_N(1)
+            fstore_N(2)
+            fstore_N(3)
+            case dstore: {
+                uint8_t index = code->code[pc + 1];
+                current.data.locals[index] = sese::Value(current.data.stacks.top().getDouble());
+                current.data.stacks.pop();
+                pc += 2;
+                break;
+            }
+            dstore_N(0)
+            dstore_N(1)
+            dstore_N(2)
+            dstore_N(3)
+            // todo astore
+            // todo stack 相关指令暂时未实现，因为没有区分 int/long 和 float/double 类型
+            case ladd:
             case iadd: {
                 auto i = current.data.stacks.top().getInt();
                 current.data.stacks.pop();
@@ -123,6 +279,17 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 pc += 1;
                 break;
             }
+            case dadd:
+            case fadd: {
+                auto i = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                i += current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                current.data.stacks.emplace(i);
+                pc += 1;
+                break;
+            }
+            case lsub:
             case isub: {
                 auto value2 = current.data.stacks.top().getInt();
                 current.data.stacks.pop();
@@ -132,6 +299,37 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 pc += 1;
                 break;
             }
+            case dsub:
+            case fsub: {
+                auto value2 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                auto value1 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                current.data.stacks.emplace(value1 - value2);
+                pc += 1;
+                break;
+            }
+            case lmul:
+            case imul: {
+                auto i = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                i *= current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                current.data.stacks.emplace(i);
+                pc += 1;
+                break;
+            }
+            case dmul:
+            case fmul: {
+                auto i = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                i *= current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                current.data.stacks.emplace(i);
+                pc += 1;
+                break;
+            }
+            case ldiv:
             case idiv: {
                 auto value2 = current.data.stacks.top().getInt();
                 current.data.stacks.pop();
@@ -141,6 +339,17 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 pc += 1;
                 break;
             }
+            case ddiv:
+            case fdiv: {
+                auto value2 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                auto value1 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                current.data.stacks.emplace(value1 / value2);
+                pc += 1;
+                break;
+            }
+            case lrem:
             case irem: {
                 auto value2 = current.data.stacks.top().getInt();
                 current.data.stacks.pop();
@@ -151,6 +360,36 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 pc += 1;
                 break;
             }
+            case drem:
+            case frem: {
+                auto value2 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                auto value1 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                auto result = std::fmod(value1, value2);
+                current.data.stacks.emplace(result);
+                pc += 1;
+                break;
+            }
+            case lneg:
+            case ineg: {
+                auto i = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                i = 0 - i;
+                current.data.stacks.emplace(i);
+                pc += 1;
+                break;
+            }
+            case dneg:
+            case fneg: {
+                auto i = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                i = 0.0 - i;
+                current.data.stacks.emplace(i);
+                pc += 1;
+                break;
+            }
+            // todo shl 相关指令暂时未实现，因为没有区分 int/long 和 float/double 类型
             case iinc: {
                 uint8_t index, ii;
                 memcpy(&index, &code->code[pc + 1], 1);
@@ -158,6 +397,47 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 auto i = current.data.locals[index].getInt() + ii;
                 current.data.locals[index] = sese::Value(i);
                 pc += 3;
+                break;
+            }
+            // todo i2l 相关指令暂时未实现，因为没有区分 int/long 和 float/double 类型
+            case lcmp: {
+                auto value1 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                auto value2 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                auto i = (value1 < value2) ? -1 : ((value1 == value2) ? 0 : 1);
+                current.data.stacks.emplace(i);
+                pc += 1;
+                break;
+            }
+            case dcmpl:
+            case fcmpl: {
+                auto value1 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                auto value2 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                if (std::isnan(value1) || std::isnan(value2)) {
+                    current.data.stacks.emplace(-1);
+                } else {
+                    auto i = (value1 < value2) ? -1 : ((value1 == value2) ? 0 : 1);
+                    current.data.stacks.emplace(i);
+                }
+                pc += 1;
+                break;
+            }
+            case dcmpg:
+            case fcmpg: {
+                auto value1 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                auto value2 = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                if (std::isnan(value1) || std::isnan(value2)) {
+                    current.data.stacks.emplace(1);
+                } else {
+                    auto i = (value1 < value2) ? -1 : ((value1 == value2) ? 0 : 1);
+                    current.data.stacks.emplace(i);
+                }
+                pc += 1;
                 break;
             }
             case ifeq: {
@@ -186,6 +466,73 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 }
                 break;
             }
+            case iflt: {
+                int16_t pos;
+                memcpy(&pos, &code->code[pc + 1], 2);
+                pos = FromBigEndian16(pos);
+                auto i = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                if (i < 0) {
+                    pc += pos;
+                } else {
+                    pc += 3;
+                }
+                break;
+            }
+            case ifge: {
+                int16_t pos;
+                memcpy(&pos, &code->code[pc + 1], 2);
+                pos = FromBigEndian16(pos);
+                auto i = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                if (i >= 0) {
+                    pc += pos;
+                } else {
+                    pc += 3;
+                }
+                break;
+            }
+            case ifgt: {
+                int16_t pos;
+                memcpy(&pos, &code->code[pc + 1], 2);
+                pos = FromBigEndian16(pos);
+                auto i = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                if (i > 0) {
+                    pc += pos;
+                } else {
+                    pc += 3;
+                }
+                break;
+            }
+            case ifle: {
+                int16_t pos;
+                memcpy(&pos, &code->code[pc + 1], 2);
+                pos = FromBigEndian16(pos);
+                auto i = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                if (i <= 0) {
+                    pc += pos;
+                } else {
+                    pc += 3;
+                }
+                break;
+            }
+            case if_icmpeq: {
+                int16_t pos;
+                memcpy(&pos, &code->code[pc + 1], 2);
+                pos = FromBigEndian16(pos);
+                auto value2 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                auto value1 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                if (value1 == value2) {
+                    pc += pos;
+                } else {
+                    pc += 3;
+                }
+                break;
+            }
             case if_icmpne: {
                 int16_t pos;
                 memcpy(&pos, &code->code[pc + 1], 2);
@@ -201,7 +548,7 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 }
                 break;
             }
-            case if_icmpgt: {
+            case if_icmplt: {
                 int16_t pos;
                 memcpy(&pos, &code->code[pc + 1], 2);
                 pos = FromBigEndian16(pos);
@@ -209,7 +556,7 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 current.data.stacks.pop();
                 auto value1 = current.data.stacks.top().getInt();
                 current.data.stacks.pop();
-                if (value1 > value2) {
+                if (value1 < value2) {
                     pc += pos;
                 } else {
                     pc += 3;
@@ -231,6 +578,37 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 }
                 break;
             }
+            case if_icmpgt: {
+                int16_t pos;
+                memcpy(&pos, &code->code[pc + 1], 2);
+                pos = FromBigEndian16(pos);
+                auto value2 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                auto value1 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                if (value1 > value2) {
+                    pc += pos;
+                } else {
+                    pc += 3;
+                }
+                break;
+            }
+            case if_icmple: {
+                int16_t pos;
+                memcpy(&pos, &code->code[pc + 1], 2);
+                pos = FromBigEndian16(pos);
+                auto value2 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                auto value1 = current.data.stacks.top().getInt();
+                current.data.stacks.pop();
+                if (value1 <= value2) {
+                    pc += pos;
+                } else {
+                    pc += 3;
+                }
+                break;
+            }
+            // todo if_acmpeq
             case goto_: {
                 int16_t pos;
                 memcpy(&pos, &code->code[pc + 1], 2);
@@ -238,6 +616,8 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 pc += pos;
                 break;
             }
+            // todo jsr
+            case lreturn:
             case ireturn: {
                 auto i = current.data.stacks.top().getInt();
                 current.data.stacks.pop();
@@ -249,11 +629,25 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                           i);
                 goto end;
             }
+            case dreturn:
+            case freturn: {
+                auto i = current.data.stacks.top().getDouble();
+                current.data.stacks.pop();
+                prev.data.stacks.emplace(i);
+                pc += 1;
+                SESE_INFO("exit %s.%s with return value %f",
+                          current.class_->getThisName().c_str(),
+                          current.method->first.c_str(),
+                          i);
+                goto end;
+            }
+            // todo areturn
             case return_: {
                 pc += 1;
                 SESE_INFO("exit %s.%s", current.class_->getThisName().c_str(), current.method->first.c_str());
                 goto end;
             }
+            // todo 178 ... 195 大概率不会去实现的指令，多态等相关
             case invokestatic: {
                 uint16_t constant_index;
                 memcpy(&constant_index, &code->code[pc + 1], 2);
@@ -274,6 +668,7 @@ void jvm::Runtime::run(Info &prev, Info &current) {
                 pc += 3;
                 break;
             }
+            // todo 部分跳转和宽索引指令
             default:
                 SESE_ERROR("opcode %d", op);
                 throw sese::Exception("Unsupported opcode");
@@ -282,3 +677,5 @@ void jvm::Runtime::run(Info &prev, Info &current) {
 end:
     return;
 }
+
+#pragma endregion
